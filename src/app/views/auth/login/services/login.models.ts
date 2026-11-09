@@ -4,6 +4,13 @@ export interface LoginCredentials {
   rememberMe: boolean;
 }
 
+export interface RegisterData {
+  fullName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
 export interface UserSession {
   token: string;
   user: {

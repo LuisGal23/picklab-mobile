@@ -22,12 +22,20 @@ export const routes: Routes = [
     loadComponent: () => import('./views/picks/picks.component').then(m => m.PicksComponent)
   },
   {
+    path: 'audit',
+    loadComponent: () => import('./views/audit/audit.component').then(m => m.AuditComponent)
+  },
+  {
     path: 'follows',
-    loadComponent: () => import('./views/follows/follows.component').then(m => m.FollowsComponent)
+    redirectTo: 'audit'
+  },
+  {
+    path: 'settings',
+    loadComponent: () => import('./views/settings/settings.component').then(m => m.SettingsComponent)
   },
   {
     path: 'bankroll',
-    loadComponent: () => import('./views/bankroll/bankroll.component').then(m => m.BankrollComponent)
+    redirectTo: 'settings'
   },
   {
     path: '**',

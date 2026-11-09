@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { LoginCredentials, UserSession } from './login.models';
+import { LoginCredentials, RegisterData, UserSession } from './login.models';
 
 @Injectable({
   providedIn: 'root'
@@ -20,20 +20,17 @@ export class LoginService {
       if (data) {
         this.currentSession.set(JSON.parse(data));
       }
-    } catch {
-      // Safe fallback
-    }
+    } catch {}
   }
 
   public async login(credentials: LoginCredentials): Promise<boolean> {
     this.isLoading.set(true);
-    // Simulate lightweight auth
-    await new Promise(r => setTimeout(r, 800));
+    await new Promise(r => setTimeout(r, 650));
 
     const session: UserSession = {
       token: 'session_' + Date.now(),
       user: {
-        id: 'usr_1',
+        id: 'usr_' + Date.now(),
         email: credentials.email || 'usuario@picklab.io',
         name: credentials.email ? credentials.email.split('@')[0] : 'Luis Gal',
         isGuest: false
@@ -41,26 +38,43 @@ export class LoginService {
     };
 
     this.currentSession.set(session);
-    if (credentials.rememberMe && typeof localStorage !== 'undefined') {
+    if (typeof localStorage !== 'undefined') {
       localStorage.setItem(this.SESSION_KEY, JSON.stringify(session));
     }
     this.isLoading.set(false);
     return true;
   }
 
-  public loginAsGuest(): void {
+  public async register(data: RegisterData): Promise<boolean> {
+    this.isLoading.set(true);
+    await new Promise(r => setTimeout(r, 750));
+
     const session: UserSession = {
-      token: 'guest_' + Date.now(),
+      token: 'session_' + Date.now(),
       user: {
-        id: 'guest',
-        email: 'invitado@picklab.io',
-        name: 'Invitado',
-        isGuest: true
+        id: 'usr_' + Date.now(),
+        email: data.email,
+        name: data.fullName || (data.email ? data.email.split('@')[0] : 'Usuario'),
+        isGuest: false
       }
     };
+
     this.currentSession.set(session);
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem(this.SESSION_KEY, JSON.stringify(session));
+    }
+    this.isLoading.set(false);
+    return true;
+  }
+
+  public updateUserName(newName: string): void {
+    const cur = this.currentSession();
+    if (cur) {
+      cur.user.name = newName;
+      this.currentSession.set({ ...cur });
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(this.SESSION_KEY, JSON.stringify(cur));
+      }
     }
   }
 

@@ -1,16 +1,18 @@
 export interface MetricKpi {
   label: string;
   value: string;
-  highlight?: boolean;
+  sublabel?: string;
+  isPositive?: boolean;
 }
 
 export interface FeaturedMatchPick {
   id: string;
+  sport: 'futbol' | 'nba' | 'nfl';
   league: string;
   homeTeam: string;
   awayTeam: string;
-  homeLogo?: string;
-  awayLogo?: string;
+  homeLogo: string;
+  awayLogo: string;
   kickoff: string;
   pickTitle: string;
   pickValue: string;
@@ -21,6 +23,9 @@ export interface FeaturedMatchPick {
   sigma: number;
   simulations: number;
   isOfficial: boolean;
+  type: 'OFFICIAL_EV' | 'PROB_STATS';
+  typeLabel: string;
+  analysisSnippet: string;
 }
 
 export interface MainMatchCard {
@@ -29,19 +34,24 @@ export interface MainMatchCard {
   league: string;
   homeTeam: string;
   awayTeam: string;
+  homeLogo: string;
+  awayLogo: string;
   kickoff: string;
   pickType: string;
+  selection: string;
   line?: number;
   odds: number;
   probPct: number;
   edgePct: number;
+  type: 'OFFICIAL_EV' | 'PROB_STATS';
   status: 'PENDING' | 'LIVE' | 'FINISHED';
+  analysisSnippet: string;
 }
 
 export interface HomeDashboardData {
   userGreeting: string;
   dateSubtitle: string;
   metrics: MetricKpi[];
-  featuredPick: FeaturedMatchPick;
+  featuredPicks: FeaturedMatchPick[];
   mainPicks: MainMatchCard[];
 }
