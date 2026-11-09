@@ -9,7 +9,7 @@ export type ScheduleSubFilter = 'all' | 'picks' | 'live' | 'finished';
 })
 export class ScheduleService {
   private api = inject(ApiService);
-  private readonly todayStr = this.getTodayLocalDateString();
+  private readonly todayStr = this.getCdmxDateString(new Date());
 
   public selectedSport = signal<SportFilterType>('all');
   public searchQuery = signal<string>('');
@@ -25,21 +25,22 @@ export class ScheduleService {
     this.fetchAllUpcomingMatches();
   }
 
-  private getTodayLocalDateString(): string {
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    const d = String(now.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
+  /**
+   * Returns date string YYYY-MM-DD strictly formatted in Mexico City timezone (CDMX, UTC-6)
+   */
+  public getCdmxDateString(d: Date = new Date()): string {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Mexico_City',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(d);
   }
 
   public getTomorrowLocalDateString(): string {
     const now = new Date();
     now.setDate(now.getDate() + 1);
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    const d = String(now.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
+    return this.getCdmxDateString(now);
   }
 
   public fetchAllUpcomingMatches(): void {
@@ -96,11 +97,12 @@ export class ScheduleService {
     if (m.kickoff_utc) {
       try {
         const d = new Date(m.kickoff_utc);
-        const y = d.getFullYear();
-        const mon = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        kDate = `${y}-${mon}-${day}`;
-        kTime = d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+        kDate = this.getCdmxDateString(d);
+        kTime = d.toLocaleTimeString('es-MX', {
+          timeZone: 'America/Mexico_City',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
       } catch {}
     }
 
@@ -143,9 +145,17 @@ export class ScheduleService {
     };
   }
 
-  // Summary counts by sport from the loaded pool
+  // Summary counts by sport REACTIVE to the active date!
   public sportsSummary = computed(() => {
-    const list = this.liveMatches();
+    let list = this.liveMatches();
+    const allDates = this.allDatesMode();
+    const date = this.selectedDate();
+
+    // If specific date is active, count only matches for that date
+    if (!allDates && date) {
+      list = list.filter(m => m.kickoffDate === date);
+    }
+
     return {
       all: list.length,
       futbol: list.filter(m => m.sport === 'futbol').length,
@@ -154,7 +164,7 @@ export class ScheduleService {
     };
   });
 
-  // Determines whether the current view is auto-showing upcoming matches because no matches exist for selected date
+  // Determines whether the current view has 0 matches for selected date
   public showingUpcomingNotice = computed<boolean>(() => {
     if (this.allDatesMode()) return false;
     const sport = this.selectedSport();
@@ -180,13 +190,9 @@ export class ScheduleService {
       list = list.filter(m => m.sport === sport);
     }
 
-    // 2. Filter by Date: if specific date has matches, show them.
-    // If not in allDatesMode but that date has 0 matches for this sport, show all upcoming matches so user is never stranded!
+    // 2. Strict Filter by Date when allDatesMode is false
     if (!allDates && date) {
-      const dateFiltered = list.filter(m => m.kickoffDate === date);
-      if (dateFiltered.length > 0) {
-        list = dateFiltered;
-      }
+      list = list.filter(m => m.kickoffDate === date);
     }
 
     // 3. Sub-filter: all | picks | live | finished
@@ -236,10 +242,7 @@ export class ScheduleService {
     this.allDatesMode.set(false);
     const cur = new Date(this.selectedDate() + 'T12:00:00');
     cur.setDate(cur.getDate() + daysOffset);
-    const y = cur.getFullYear();
-    const m = String(cur.getMonth() + 1).padStart(2, '0');
-    const d = String(cur.getDate()).padStart(2, '0');
-    const newDateStr = `${y}-${m}-${d}`;
+    const newDateStr = this.getCdmxDateString(cur);
     this.selectedDate.set(newDateStr);
     this.fetchMatchesByDate(newDateStr);
   }

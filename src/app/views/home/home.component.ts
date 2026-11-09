@@ -81,7 +81,7 @@ import { FeaturedMatchPick, MainMatchCard } from './services/home.models';
         <section class="space-y-2.5">
           <div class="flex items-center justify-between">
             <span class="text-xs font-black uppercase font-mono tracking-wider text-slate-500 dark:text-slate-400">
-              Partidos Destacados del DÃ­a
+              Partidos Destacados del Día
             </span>
             <!-- Carousel Pagination Dots -->
             <div class="flex items-center space-x-1.5">
@@ -133,12 +133,12 @@ import { FeaturedMatchPick, MainMatchCard } from './services/home.models';
                 </div>
                 @if (item.isOfficial) {
                   <span class="px-3 py-1 rounded-full bg-emerald-500 text-slate-950 font-black font-mono text-[10px] tracking-wide flex items-center space-x-1 shadow-md">
-                    <span>â˜…</span>
+                    <span>★</span>
                     <span>{{ item.typeLabel }}</span>
                   </span>
                 } @else {
                   <span class="px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 font-black font-mono text-[10px] tracking-wide flex items-center space-x-1">
-                    <span>âš¡</span>
+                    <span>⚡</span>
                     <span>{{ item.typeLabel }}</span>
                   </span>
                 }
@@ -177,7 +177,7 @@ import { FeaturedMatchPick, MainMatchCard } from './services/home.models';
               <!-- Recommended Pick & Estimated Odds -->
               <div class="p-3.5 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between my-1">
                 <div>
-                  <span class="text-[10px] font-mono text-slate-400 uppercase font-bold block">PronÃ³stico Sugerido</span>
+                  <span class="text-[10px] font-mono text-slate-400 uppercase font-bold block">Pronóstico Sugerido</span>
                   <span class="text-base font-black text-white block">{{ item.pickTitle }}</span>
                 </div>
                 <div class="text-right">
@@ -188,7 +188,7 @@ import { FeaturedMatchPick, MainMatchCard } from './services/home.models';
 
               <!-- Edge & Probability Strip -->
               <div class="flex items-center justify-between text-xs py-2 font-mono">
-                <span class="text-emerald-400 font-bold">+{{ item.edgePct }}% Valor MatemÃ¡tico (EV)</span>
+                <span class="text-emerald-400 font-bold">+{{ item.edgePct }}% Valor Matemático (EV)</span>
                 <span class="text-slate-400">{{ item.probPct }}% Probabilidad</span>
               </div>
 
@@ -220,7 +220,7 @@ import { FeaturedMatchPick, MainMatchCard } from './services/home.models';
                     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                     <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                   </svg>
-                  <span>{{ notifService.isSubscribed(item.id) ? 'Notificando âœ“' : 'Avisar Resultado' }}</span>
+                  <span>{{ notifService.isSubscribed(item.id) ? 'Notificando ✓' : 'Avisar Resultado' }}</span>
                 </button>
               </div>
 
@@ -232,7 +232,7 @@ import { FeaturedMatchPick, MainMatchCard } from './services/home.models';
         <section class="space-y-3 pt-1">
           <div class="flex items-center justify-between">
             <h3 class="text-base font-black text-slate-950 dark:text-white tracking-tight">
-              Main Picks del DÃ­a
+              Main Picks del Día
             </h3>
             <span class="text-xs font-mono font-bold text-slate-400">Total: {{ dashboard().mainPicks.length }}</span>
           </div>
@@ -245,7 +245,7 @@ import { FeaturedMatchPick, MainMatchCard } from './services/home.models';
                 <div class="flex items-center justify-between text-xs">
                   <div class="flex items-center space-x-1.5">
                     <span class="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 font-bold font-mono text-[10px] text-slate-600 dark:text-slate-300">
-                      {{ match.sport }} â€¢ {{ match.league }}
+                      {{ match.sport }} • {{ match.league }}
                     </span>
                   </div>
 
@@ -278,7 +278,7 @@ import { FeaturedMatchPick, MainMatchCard } from './services/home.models';
                 <!-- Selection & Odds Pill -->
                 <div class="p-3 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 flex items-center justify-between text-xs">
                   <div>
-                    <span class="text-[10px] font-mono text-slate-400 uppercase block">SelecciÃ³n</span>
+                    <span class="text-[10px] font-mono text-slate-400 uppercase block">Selección</span>
                     <span class="font-black text-slate-900 dark:text-white">{{ match.selection }}</span>
                   </div>
                   <div class="text-right">
@@ -317,7 +317,7 @@ import { FeaturedMatchPick, MainMatchCard } from './services/home.models';
                     [class.dark:text-emerald-400]="notifService.isSubscribed(match.id)"
                     class="py-2.5 px-3 rounded-xl border border-slate-200 dark:border-white/10 active:scale-95 font-semibold text-xs text-slate-700 dark:text-slate-300 flex items-center justify-center space-x-1 transition-all"
                   >
-                    <span>ðŸ””</span>
+                    <span>🔔</span>
                     <span>{{ notifService.isSubscribed(match.id) ? 'Avisando' : 'Notificar' }}</span>
                   </button>
                 </div>
@@ -372,7 +372,7 @@ export class HomeComponent {
       },
       reasoning: [
         item.analysisSnippet,
-        `Volatilidad proyectada (sigma = ${item.sigma}) se encuentra dentro del rango de alta confiabilidad estadÃ­stica.`,
+        `Volatilidad proyectada (sigma = ${item.sigma}) se encuentra dentro del rango de alta confiabilidad estadística.`,
         'Margen de cuota desfasada respecto a casas de apuestas de referencia.'
       ]
     }, item.id, item.sport, item.league);
