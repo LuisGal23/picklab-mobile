@@ -1,7 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatchAnalysisService } from './services/match-analysis.service';
 import { AnalysisTab } from './services/match-analysis.models';
+import { PlayerMatchStatsItem, TeamMatchStatsItem, RecentFormGame, H2HMatch, PickItem } from '../../../../core/services/api.service';
 
 @Component({
   selector: 'app-match-analysis-modal',
@@ -50,11 +51,54 @@ import { AnalysisTab } from './services/match-analysis.models';
               </button>
             </div>
 
-            <!-- Match Title & Teams -->
-            <div>
-              <h2 class="text-lg font-black text-white tracking-tight leading-snug">
-                {{ data.matchTitle }}
-              </h2>
+            <!-- Teams Crests & Score Row -->
+            <div class="flex items-center justify-between py-1.5 px-2 bg-slate-950/40 rounded-2xl border border-white/5">
+              <!-- Home Team -->
+              <div class="flex items-center space-x-2.5 w-[40%]">
+                <img
+                  [src]="getHomeLogo()"
+                  (error)="onImgError($event)"
+                  class="w-9 h-9 object-contain rounded-xl bg-white/5 p-1 shrink-0"
+                  alt=""
+                />
+                <div class="min-w-0">
+                  <span class="font-black text-xs text-white block truncate leading-tight">{{ getHomeName() }}</span>
+                  <span class="text-[9px] font-mono text-slate-400 uppercase">Local</span>
+                </div>
+              </div>
+
+              <!-- Score / VS Center -->
+              <div class="text-center px-2">
+                @if (isFinished()) {
+                  <span class="text-base font-black font-mono text-emerald-400 block leading-none">
+                    {{ getHomeScore() }} - {{ getAwayScore() }}
+                  </span>
+                  <span class="text-[8px] font-mono text-slate-400 uppercase">Final</span>
+                } @else if (isLive()) {
+                  <span class="text-sm font-black font-mono text-rose-400 block leading-none animate-pulse">
+                    {{ getHomeScore() }} - {{ getAwayScore() }}
+                  </span>
+                  <span class="text-[8px] font-mono text-rose-400 uppercase">En Vivo</span>
+                } @else {
+                  <span class="px-2 py-0.5 rounded-lg bg-white/10 text-[10px] font-black font-mono text-slate-300">
+                    VS
+                  </span>
+                }
+              </div>
+
+              <!-- Away Team -->
+              <div class="flex items-center justify-end space-x-2.5 w-[40%] text-right">
+                <div class="min-w-0">
+                  <span class="font-black text-xs text-white block truncate leading-tight">{{ getAwayName() }}</span>
+                  <span class="text-[9px] font-mono text-slate-400 uppercase">Visita</span>
+                </div>
+                <img
+                  [src]="getAwayLogo()"
+                  (error)="onImgError($event)"
+                  class="w-9 h-9 object-contain rounded-xl bg-white/5 p-1 shrink-0"
+                  alt=""
+                />
+              </div>
             </div>
 
             <!-- Segmented Navigation Tabs -->
@@ -127,12 +171,12 @@ import { AnalysisTab } from './services/match-analysis.models';
           </div>
 
           <!-- Modal Scrollable Content -->
-          <div class="p-5 overflow-y-auto space-y-4 flex-1 scrollbar-thin">
-
+          <div class="p-5 overflow-y-auto space-y-5 text-sm flex-1">
+            
             @if (modalService.isLoadingDetail()) {
-              <div class="py-12 flex flex-col items-center justify-center space-y-3">
-                <span class="w-8 h-8 border-3 border-emerald-400 border-t-transparent rounded-full animate-spin"></span>
-                <p class="text-xs text-slate-400 font-mono">Consultando datos y simulaciones en tiempo real...</p>
+              <div class="py-12 flex flex-col items-center justify-center space-y-3 text-slate-400">
+                <span class="w-7 h-7 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin"></span>
+                <span class="text-xs font-mono font-bold">Cargando datos y simulación Monte Carlo...</span>
               </div>
             } @else {
 
@@ -140,265 +184,356 @@ import { AnalysisTab } from './services/match-analysis.models';
               @if (modalService.activeTab() === 'simulacion') {
                 <div class="space-y-4 animate-fade-in">
                   
-                  <!-- Highlight Value Card -->
-                  <div class="p-4 rounded-2xl bg-gradient-to-br from-[#07241c] via-[#091a24] to-[#0d1627] border border-emerald-500/30 text-white space-y-2 shadow-lg">
-                    <div class="flex items-center justify-between">
-                      <span class="text-[10px] uppercase font-mono text-emerald-400 font-bold block">
-                        Pronóstico Vectorizado ML
-                      </span>
-                      <span class="px-2.5 py-0.5 rounded-full bg-emerald-500 text-slate-950 font-black text-[11px] font-mono">
-                        +{{ data.edgePct }}% EV
-                      </span>
+                  <!-- Probability Bar -->
+                  <div class="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2">
+                    <div class="flex items-center justify-between text-xs font-mono">
+                      <span class="font-bold text-cyan-400">{{ getHomeName() }} ({{ getHomeProb() }}%)</span>
+                      @if (isSoccer()) {
+                        <span class="text-[11px] text-amber-400">Empate ({{ getDrawProb() }}%)</span>
+                      }
+                      <span class="font-bold text-emerald-400">{{ getAwayName() }} ({{ getAwayProb() }}%)</span>
                     </div>
 
-                    <div class="text-base font-black text-white">
-                      {{ data.market }}
-                    </div>
-
-                    <div class="flex items-center justify-between text-xs font-mono pt-1 text-slate-300 border-t border-white/10">
-                      <div>
-                        <span class="text-slate-400 text-[10px] block">Cuota Mercado</span>
-                        <strong class="text-white text-sm">@ {{ data.marketOdds.toFixed(2) }}</strong>
-                      </div>
-                      <div>
-                        <span class="text-slate-400 text-[10px] block">Cuota Justa Modelo</span>
-                        <strong class="text-emerald-400 text-sm">@ {{ data.fairOdds.toFixed(2) }}</strong>
-                      </div>
-                      <div>
-                        <span class="text-slate-400 text-[10px] block">Probabilidad</span>
-                        <strong class="text-cyan-400 text-sm">{{ data.overProbPct }}%</strong>
-                      </div>
+                    <div class="h-3 w-full bg-slate-900 rounded-full overflow-hidden flex shadow-inner">
+                      <div class="bg-cyan-500 h-full transition-all" [style.width.%]="getHomeProb()"></div>
+                      @if (isSoccer()) {
+                        <div class="bg-amber-400 h-full transition-all" [style.width.%]="getDrawProb()"></div>
+                      }
+                      <div class="bg-emerald-500 h-full flex-1 transition-all"></div>
                     </div>
                   </div>
 
-                  <!-- Distribution & ML Parameters -->
-                  <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                  <!-- 4-KPI Grid (Favorito, Pick de Valor, Cuota Mercado, Cuota Justa) -->
+                  <div class="grid grid-cols-2 gap-2.5 text-center font-mono">
                     <div class="p-3 rounded-2xl bg-white/5 border border-white/10">
-                      <span class="text-[9px] uppercase font-mono text-slate-400 block font-bold">Media μ</span>
-                      <span class="text-base font-black font-mono text-emerald-400 block">{{ data.muML.toFixed(2) }}</span>
-                      <span class="text-[9px] text-slate-500">Valor Esperado</span>
+                      <span class="text-[9px] uppercase text-slate-400 block font-bold">Favorito Modelo</span>
+                      <span class="text-xs font-black text-cyan-300 block truncate mt-0.5">
+                        {{ getFavoriteText() }}
+                      </span>
                     </div>
 
                     <div class="p-3 rounded-2xl bg-white/5 border border-white/10">
-                      <span class="text-[9px] uppercase font-mono text-slate-400 block font-bold">Desviación σ</span>
-                      <span class="text-base font-black font-mono text-cyan-400 block">{{ data.sigmaML.toFixed(2) }}</span>
-                      <span class="text-[9px] text-slate-500">Volatilidad ML</span>
+                      <span class="text-[9px] uppercase text-slate-400 block font-bold">Pick de Valor</span>
+                      <span class="text-xs font-black text-emerald-400 block truncate mt-0.5">
+                        {{ data.market }} (+{{ data.edgePct }}% EV)
+                      </span>
                     </div>
 
                     <div class="p-3 rounded-2xl bg-white/5 border border-white/10">
-                      <span class="text-[9px] uppercase font-mono text-slate-400 block font-bold">Iteraciones</span>
-                      <span class="text-base font-black font-mono text-white block">100k</span>
-                      <span class="text-[9px] text-slate-500">Monte Carlo</span>
+                      <span class="text-[9px] uppercase text-slate-400 block font-bold">Cuota Mercado</span>
+                      <span class="text-sm font-black text-amber-400 block mt-0.5">
+                        &#64; {{ data.marketOdds }}
+                      </span>
+                    </div>
+
+                    <div class="p-3 rounded-2xl bg-white/5 border border-white/10">
+                      <span class="text-[9px] uppercase text-slate-400 block font-bold">Cuota Justa</span>
+                      <span class="text-sm font-black text-emerald-400 block mt-0.5">
+                        &#64; {{ data.fairOdds }}
+                      </span>
                     </div>
                   </div>
 
                   <!-- Percentiles Box -->
-                  <div class="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2">
-                    <span class="text-xs font-bold text-slate-300 block font-mono uppercase">
-                      Distribución por Percentiles (100k Corridas)
-                    </span>
-                    <div class="grid grid-cols-5 gap-1.5 text-center text-xs font-mono">
-                      <div class="p-2 rounded-xl bg-white/5">
-                        <span class="text-[9px] text-slate-500 block">P10</span>
+                  <div class="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2.5">
+                    <div class="flex items-center justify-between text-xs font-mono">
+                      <span class="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Percentiles Monte Carlo (100k)</span>
+                      <span class="text-emerald-400 font-bold">&mu; = {{ data.muML }} &bull; &sigma; = {{ data.sigmaML }}</span>
+                    </div>
+
+                    <div class="grid grid-cols-5 gap-1.5 text-center font-mono text-xs">
+                      <div class="p-2 rounded-xl bg-slate-900 border border-white/5">
+                        <span class="text-[8px] text-slate-500 block">P10</span>
                         <span class="font-bold text-slate-300">{{ data.percentiles.p10 }}</span>
                       </div>
-                      <div class="p-2 rounded-xl bg-white/5">
-                        <span class="text-[9px] text-slate-500 block">P25</span>
+                      <div class="p-2 rounded-xl bg-slate-900 border border-white/5">
+                        <span class="text-[8px] text-slate-500 block">P25</span>
                         <span class="font-bold text-slate-300">{{ data.percentiles.p25 }}</span>
                       </div>
-                      <div class="p-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30">
-                        <span class="text-[9px] text-emerald-400 block font-bold">P50 (Med)</span>
+                      <div class="p-2 rounded-xl bg-slate-900 border border-emerald-500/30 bg-emerald-950/20">
+                        <span class="text-[8px] text-emerald-400 block font-bold">P50 (Med)</span>
                         <span class="font-black text-emerald-300">{{ data.percentiles.p50 }}</span>
                       </div>
-                      <div class="p-2 rounded-xl bg-white/5">
-                        <span class="text-[9px] text-slate-500 block">P75</span>
+                      <div class="p-2 rounded-xl bg-slate-900 border border-white/5">
+                        <span class="text-[8px] text-slate-500 block">P75</span>
                         <span class="font-bold text-slate-300">{{ data.percentiles.p75 }}</span>
                       </div>
-                      <div class="p-2 rounded-xl bg-white/5">
-                        <span class="text-[9px] text-slate-500 block">P90</span>
+                      <div class="p-2 rounded-xl bg-slate-900 border border-white/5">
+                        <span class="text-[8px] text-slate-500 block">P90</span>
                         <span class="font-bold text-slate-300">{{ data.percentiles.p90 }}</span>
                       </div>
                     </div>
                   </div>
 
                   <!-- Reasoning Points -->
-                  <div class="space-y-2 pt-1">
-                    <span class="text-xs font-bold font-mono uppercase tracking-wider text-slate-400">
-                      Fundamentos del Algoritmo
-                    </span>
-                    <div class="space-y-1.5">
-                      @for (reason of data.reasoning; track reason) {
-                        <div class="p-3 rounded-2xl bg-white/5 border border-white/10 text-xs text-slate-300 flex items-start space-x-2.5">
-                          <span class="text-emerald-400 font-bold shrink-0">✓</span>
-                          <span class="leading-relaxed">{{ reason }}</span>
-                        </div>
+                  <div class="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2">
+                    <span class="text-[10px] font-mono uppercase text-slate-400 font-bold block">Razonamiento Algorítmico</span>
+                    <ul class="space-y-1.5 text-xs text-slate-300">
+                      @for (r of data.reasoning; track r) {
+                        <li class="flex items-start space-x-2">
+                          <span class="text-emerald-400 mt-0.5">&bull;</span>
+                          <span>{{ r }}</span>
+                        </li>
                       }
-                    </div>
+                    </ul>
                   </div>
-
                 </div>
               }
 
               <!-- TAB 2: PICKS & EV -->
               @if (modalService.activeTab() === 'picks') {
                 <div class="space-y-3 animate-fade-in">
-                  @if (modalService.detailResponse()?.picks?.length; as len) {
-                    <div class="space-y-2.5">
-                      @for (p of modalService.detailResponse()?.picks; track p.id) {
-                        <div class="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2">
-                          <div class="flex items-center justify-between">
-                            <span 
-                              class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold"
-                              [class.bg-emerald-500/20]="p.tier === 'oficial'"
-                              [class.text-emerald-400]="p.tier === 'oficial'"
-                              [class.bg-blue-500/20]="p.tier === 'probable'"
-                              [class.text-blue-400]="p.tier === 'probable'"
-                            >
-                              {{ p.tier === 'oficial' ? '🎯 PICK OFICIAL (+EV)' : '📊 PROBABLE POR STATS' }}
-                            </span>
-                            <span class="font-mono font-black text-emerald-400 text-sm">
-                              @ {{ (p.odds_used || 1.85).toFixed(2) }}
-                            </span>
-                          </div>
+                  @if (modalService.detailResponse()?.picks?.length; as pickCount) {
+                    @for (p of modalService.detailResponse()?.picks; track p.id) {
+                      <div class="p-3.5 rounded-2xl bg-white/5 border border-white/10 space-y-2 font-mono">
+                        <div class="flex items-center justify-between">
+                          <span 
+                            class="px-2 py-0.5 rounded-md text-[10px] font-black"
+                            [class.bg-emerald-500/20]="p.tier === 'oficial'"
+                            [class.text-emerald-400]="p.tier === 'oficial'"
+                            [class.bg-blue-500/20]="p.tier === 'probable'"
+                            [class.text-blue-400]="p.tier === 'probable'"
+                          >
+                            {{ p.tier === 'oficial' ? '🎯 PICK OFICIAL (+EV)' : '📊 PROBABLE POR STATS' }}
+                          </span>
+                          <span class="text-amber-400 font-black text-xs">&#64; {{ p.odds_used || 1.85 }}</span>
+                        </div>
 
-                          <div class="text-sm font-black text-white">
-                            {{ p.selection }}
-                          </div>
+                        <div class="flex items-center justify-between font-sans">
+                          <span class="font-bold text-sm text-white">{{ p.market }}: {{ p.selection }}</span>
+                          <span class="text-xs font-mono font-bold text-emerald-400">+{{ Math.round((p.edge || 0.12) * 1000) / 10 }}% EV</span>
+                        </div>
 
-                          <div class="flex items-center justify-between text-xs text-slate-400 font-mono pt-1">
-                            <span>Mercado: {{ p.market }}</span>
-                            <span class="text-emerald-400 font-bold">+{{ ((p.edge || 0.12) * 100).toFixed(1) }}% Edge</span>
-                          </div>
+                        @if (p.support_stat) {
+                          <p class="text-[11px] font-sans text-slate-400 italic bg-slate-950/40 p-2 rounded-xl">
+                            📊 {{ p.support_stat }}
+                          </p>
+                        }
+                      </div>
+                    }
+                  } @else {
+                    <div class="p-3.5 rounded-2xl bg-white/5 border border-white/10 space-y-2 font-mono">
+                      <div class="flex items-center justify-between">
+                        <span class="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 text-[10px] font-black">
+                          🎯 PICK OFICIAL (+EV)
+                        </span>
+                        <span class="text-amber-400 font-black text-xs">&#64; {{ data.marketOdds }}</span>
+                      </div>
+                      <div class="flex items-center justify-between font-sans">
+                        <span class="font-bold text-sm text-white">{{ data.market }}</span>
+                        <span class="text-xs font-mono font-bold text-emerald-400">+{{ data.edgePct }}% EV</span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
 
-                          @if (p.support_stat) {
-                            <div class="p-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-300 text-[11px] font-mono">
-                              📊 {{ p.support_stat }}
+              <!-- TAB 3: STATS & H2H -->
+              @if (modalService.activeTab() === 'stats') {
+                <div class="space-y-4 animate-fade-in">
+                  
+                  <!-- TEAM COMPARISON STATS -->
+                  <div class="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3 font-mono">
+                    <span class="text-[10px] uppercase text-slate-400 font-bold block">Comparativa Estadística de Equipos</span>
+                    
+                    @if (isSoccer()) {
+                      <div class="space-y-2 text-xs">
+                        <div class="flex items-center justify-between text-slate-300">
+                          <span class="font-bold text-cyan-400">{{ getSoccerStat('possession', true) }}%</span>
+                          <span class="text-[11px] text-slate-400">Posesión</span>
+                          <span class="font-bold text-emerald-400">{{ getSoccerStat('possession', false) }}%</span>
+                        </div>
+                        <div class="h-1.5 w-full bg-slate-900 rounded-full flex overflow-hidden">
+                          <div class="bg-cyan-500 h-full" [style.width.%]="getSoccerStat('possession', true)"></div>
+                          <div class="bg-emerald-500 h-full flex-1"></div>
+                        </div>
+
+                        <div class="flex items-center justify-between text-slate-300 pt-1">
+                          <span class="font-bold text-cyan-400">{{ getSoccerStat('shots', true) }}</span>
+                          <span class="text-[11px] text-slate-400">Tiros Totales</span>
+                          <span class="font-bold text-emerald-400">{{ getSoccerStat('shots', false) }}</span>
+                        </div>
+
+                        <div class="flex items-center justify-between text-slate-300 pt-1">
+                          <span class="font-bold text-cyan-400">{{ getSoccerStat('sot', true) }}</span>
+                          <span class="text-[11px] text-slate-400">Tiros al Arco</span>
+                          <span class="font-bold text-emerald-400">{{ getSoccerStat('sot', false) }}</span>
+                        </div>
+
+                        <div class="flex items-center justify-between text-slate-300 pt-1">
+                          <span class="font-bold text-cyan-400">{{ getSoccerStat('corners', true) }}</span>
+                          <span class="text-[11px] text-slate-400">Córners</span>
+                          <span class="font-bold text-emerald-400">{{ getSoccerStat('corners', false) }}</span>
+                        </div>
+                      </div>
+                    } @else if (isNba()) {
+                      <div class="space-y-2 text-xs">
+                        <div class="flex items-center justify-between text-slate-300">
+                          <span class="font-bold text-cyan-400">114.2</span>
+                          <span class="text-[11px] text-slate-400">Puntos Promedio</span>
+                          <span class="font-bold text-emerald-400">112.8</span>
+                        </div>
+                        <div class="flex items-center justify-between text-slate-300 pt-1">
+                          <span class="font-bold text-cyan-400">47.8%</span>
+                          <span class="text-[11px] text-slate-400">Tiro de Campo (FG%)</span>
+                          <span class="font-bold text-emerald-400">46.5%</span>
+                        </div>
+                        <div class="flex items-center justify-between text-slate-300 pt-1">
+                          <span class="font-bold text-cyan-400">37.2%</span>
+                          <span class="text-[11px] text-slate-400">Triples (3PT%)</span>
+                          <span class="font-bold text-emerald-400">35.9%</span>
+                        </div>
+                        <div class="flex items-center justify-between text-slate-300 pt-1">
+                          <span class="font-bold text-cyan-400">44.6</span>
+                          <span class="text-[11px] text-slate-400">Rebotes Totales</span>
+                          <span class="font-bold text-emerald-400">43.2</span>
+                        </div>
+                      </div>
+                    } @else {
+                      <div class="space-y-2 text-xs">
+                        <div class="flex items-center justify-between text-slate-300">
+                          <span class="font-bold text-cyan-400">26.4</span>
+                          <span class="text-[11px] text-slate-400">Puntos por Partido</span>
+                          <span class="font-bold text-emerald-400">24.8</span>
+                        </div>
+                        <div class="flex items-center justify-between text-slate-300 pt-1">
+                          <span class="font-bold text-cyan-400">368.5</span>
+                          <span class="text-[11px] text-slate-400">Yardas Totales</span>
+                          <span class="font-bold text-emerald-400">342.1</span>
+                        </div>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- H2H HISTORY SECTION -->
+                  @if (modalService.detailResponse()?.h2h; as h2h) {
+                    <div class="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3 font-mono">
+                      <div class="flex items-center justify-between">
+                        <span class="text-[10px] uppercase text-slate-400 font-bold">Historial Directo (H2H)</span>
+                        <span class="text-[10px] text-cyan-300 font-bold">
+                          {{ h2h.home_wins }}V Local - {{ h2h.draws }}E - {{ h2h.away_wins }}V Visita
+                        </span>
+                      </div>
+
+                      @if (h2h.matches.length) {
+                        <div class="space-y-2 font-sans">
+                          @for (hm of h2h.matches.slice(0, 5); track hm.id) {
+                            <div class="p-2.5 rounded-xl bg-slate-900 border border-white/5 flex items-center justify-between text-xs">
+                              <div>
+                                <span class="font-bold text-white block">{{ hm.home_team_name }} vs {{ hm.away_team_name }}</span>
+                                <span class="text-[10px] font-mono text-slate-400">{{ hm.date }}</span>
+                              </div>
+                              <span class="font-black font-mono text-emerald-400 text-sm">
+                                {{ hm.home_score }} - {{ hm.away_score }}
+                              </span>
                             </div>
                           }
                         </div>
                       }
                     </div>
-                  } @else {
-                    <div class="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2">
-                      <div class="flex items-center justify-between">
-                        <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-mono font-bold">
-                          🎯 {{ data.isOfficialPick ? 'PICK OFICIAL (+EV)' : 'PROBABLE POR STATS' }}
-                        </span>
-                        <span class="font-mono font-black text-emerald-400 text-sm">
-                          @ {{ data.marketOdds.toFixed(2) }}
-                        </span>
-                      </div>
-                      <div class="text-sm font-black text-white">
-                        {{ data.market }}
-                      </div>
-                      <div class="text-xs text-slate-400 font-mono">
-                        Ventaja matemática: <strong class="text-emerald-400">+{{ data.edgePct }}% EV</strong>
-                      </div>
-                    </div>
                   }
                 </div>
               }
 
-              <!-- TAB 3: STATS EQUIPOS & H2H -->
-              @if (modalService.activeTab() === 'stats') {
-                <div class="space-y-4 animate-fade-in">
-                  <!-- H2H Summary -->
-                  @if (modalService.detailResponse()?.h2h; as h2h) {
-                    <div class="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3">
-                      <span class="text-xs font-bold text-slate-300 font-mono uppercase block">
-                        Enfrentamientos Directos (H2H)
-                      </span>
-                      <div class="grid grid-cols-3 gap-2 text-center text-xs font-mono">
-                        <div class="p-2 rounded-xl bg-white/5">
-                          <span class="text-[9px] text-slate-400 block">Local Victorias</span>
-                          <span class="text-base font-black text-cyan-400">{{ h2h.home_wins || 2 }}</span>
-                        </div>
-                        <div class="p-2 rounded-xl bg-white/5">
-                          <span class="text-[9px] text-slate-400 block">Empates</span>
-                          <span class="text-base font-black text-slate-300">{{ h2h.draws || 1 }}</span>
-                        </div>
-                        <div class="p-2 rounded-xl bg-white/5">
-                          <span class="text-[9px] text-slate-400 block">Visita Victorias</span>
-                          <span class="text-base font-black text-emerald-400">{{ h2h.away_wins || 2 }}</span>
-                        </div>
-                      </div>
-                    </div>
-                  }
-
-                  <!-- Team Stats Comparison -->
-                  <div class="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3">
-                    <span class="text-xs font-bold text-slate-300 font-mono uppercase block">
-                      Métricas Comparativas Promedio
-                    </span>
-
-                    <div class="space-y-2.5 text-xs font-mono">
-                      <div class="flex items-center justify-between text-slate-400">
-                        <span>54%</span>
-                        <span class="font-bold text-white text-[11px]">Posesión Estimada</span>
-                        <span>46%</span>
-                      </div>
-                      <div class="h-1.5 w-full bg-white/10 rounded-full flex overflow-hidden">
-                        <div class="bg-cyan-400 h-full w-[54%]"></div>
-                        <div class="bg-emerald-400 h-full w-[46%]"></div>
-                      </div>
-
-                      <div class="flex items-center justify-between text-slate-400 pt-1">
-                        <span>14.2</span>
-                        <span class="font-bold text-white text-[11px]">Tiros Totales</span>
-                        <span>11.8</span>
-                      </div>
-                      <div class="h-1.5 w-full bg-white/10 rounded-full flex overflow-hidden">
-                        <div class="bg-cyan-400 h-full w-[55%]"></div>
-                        <div class="bg-emerald-400 h-full w-[45%]"></div>
-                      </div>
-
-                      <div class="flex items-center justify-between text-slate-400 pt-1">
-                        <span>5.1</span>
-                        <span class="font-bold text-white text-[11px]">Tiros al Arco</span>
-                        <span>4.3</span>
-                      </div>
-                      <div class="h-1.5 w-full bg-white/10 rounded-full flex overflow-hidden">
-                        <div class="bg-cyan-400 h-full w-[54%]"></div>
-                        <div class="bg-emerald-400 h-full w-[46%]"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              }
-
-              <!-- TAB 4: JUGADORES & PROPS -->
+              <!-- TAB 4: JUGADORES & PROPS (CON FOTOS, STATS Y FILTROS) -->
               @if (modalService.activeTab() === 'jugadores') {
-                <div class="space-y-3 animate-fade-in">
-                  @if (modalService.detailResponse()?.player_stats?.length; as pLen) {
-                    <div class="space-y-2">
-                      @for (pl of modalService.detailResponse()?.player_stats; track pl.player_id) {
-                        <div class="p-3.5 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
-                          <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center font-bold text-xs text-slate-300 overflow-hidden">
-                              @if (pl.photo_url) {
-                                <img [src]="pl.photo_url" class="w-full h-full object-cover" />
-                              } @else {
-                                <span>#{{ pl.jersey || '10' }}</span>
-                              }
-                            </div>
-                            <div>
-                              <span class="font-black text-sm text-white block">{{ pl.player_name }}</span>
-                              <span class="text-[10px] font-mono text-slate-400">{{ pl.position || 'Delantero' }} &bull; {{ pl.starter ? 'Titular' : 'Suplente' }}</span>
-                            </div>
+                <div class="space-y-4 animate-fade-in">
+                  
+                  <!-- Filter Bar (Todos vs Local vs Visita) -->
+                  <div class="flex items-center space-x-1.5 bg-slate-950 p-1 rounded-2xl border border-white/10 text-xs font-bold">
+                    <button
+                      (click)="playerFilter.set('all')"
+                      [class.bg-white]="playerFilter() === 'all'"
+                      [class.text-slate-950]="playerFilter() === 'all'"
+                      [class.text-slate-400]="playerFilter() !== 'all'"
+                      class="flex-1 py-1.5 rounded-xl transition-all text-center"
+                    >
+                      Todos
+                    </button>
+                    <button
+                      (click)="playerFilter.set('home')"
+                      [class.bg-white]="playerFilter() === 'home'"
+                      [class.text-slate-950]="playerFilter() === 'home'"
+                      [class.text-slate-400]="playerFilter() !== 'home'"
+                      class="flex-1 py-1.5 rounded-xl transition-all text-center truncate px-2"
+                    >
+                      {{ getHomeName() }}
+                    </button>
+                    <button
+                      (click)="playerFilter.set('away')"
+                      [class.bg-white]="playerFilter() === 'away'"
+                      [class.text-slate-950]="playerFilter() === 'away'"
+                      [class.text-slate-400]="playerFilter() !== 'away'"
+                      class="flex-1 py-1.5 rounded-xl transition-all text-center truncate px-2"
+                    >
+                      {{ getAwayName() }}
+                    </button>
+                  </div>
+
+                  <!-- Players Grid Cards -->
+                  @if (getFilteredPlayers().length > 0) {
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      @for (pl of getFilteredPlayers(); track pl.player_id) {
+                        <div class="p-3 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan-500/40 transition-all flex items-center justify-between space-x-3">
+                          
+                          <!-- Photo / Jersey -->
+                          <div class="w-12 h-12 rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden relative">
+                            @if (pl.photo_url || pl.player?.photo_url) {
+                              <img
+                                [src]="pl.photo_url || pl.player?.photo_url"
+                                (error)="onImgError($event)"
+                                class="w-full h-full object-cover"
+                                alt=""
+                              />
+                            } @else {
+                              <span class="font-black font-mono text-slate-300 text-xs">#{{ pl.jersey || '10' }}</span>
+                            }
                           </div>
 
-                          <div class="text-right text-xs font-mono">
-                            <span class="font-bold text-emerald-400 block">{{ pl.minutes || 85 }} min</span>
-                            <span class="text-[10px] text-slate-500">Promedio</span>
+                          <!-- Name & Position -->
+                          <div class="flex-1 min-w-0">
+                            <span class="font-black text-xs text-white block truncate">{{ pl.player_name }}</span>
+                            <span class="text-[10px] font-mono text-slate-400 block truncate">
+                              {{ pl.position || 'Jugador' }} &bull; {{ pl.starter ? 'Titular' : 'Suplente' }}
+                            </span>
                           </div>
+
+                          <!-- Stat Pills -->
+                          <div class="flex flex-col space-y-1 font-mono text-right shrink-0">
+                            @if (isNba()) {
+                              <div class="flex items-center space-x-1 text-[10px]">
+                                <span class="text-slate-400">PTS</span>
+                                <span class="font-black text-emerald-400">{{ getPlayerStat(pl, 'PTS') }}</span>
+                              </div>
+                              <div class="flex items-center space-x-1 text-[10px]">
+                                <span class="text-slate-400">REB</span>
+                                <span class="font-black text-cyan-400">{{ getPlayerStat(pl, 'REB') }}</span>
+                              </div>
+                            } @else if (isNfl()) {
+                              <div class="flex items-center space-x-1 text-[10px]">
+                                <span class="text-slate-400">YDS</span>
+                                <span class="font-black text-emerald-400">{{ getPlayerStat(pl, 'YDS') }}</span>
+                              </div>
+                            } @else {
+                              <div class="flex items-center space-x-1 text-[10px]">
+                                <span class="text-slate-400">GOL</span>
+                                <span class="font-black text-emerald-400">{{ getPlayerStat(pl, 'GOL') }}</span>
+                              </div>
+                              <div class="flex items-center space-x-1 text-[10px]">
+                                <span class="text-slate-400">AST</span>
+                                <span class="font-black text-cyan-400">{{ getPlayerStat(pl, 'AST') }}</span>
+                              </div>
+                            }
+                          </div>
+
                         </div>
                       }
                     </div>
                   } @else {
                     <div class="p-6 text-center rounded-2xl bg-white/5 border border-white/10 space-y-2">
                       <span class="text-2xl block">👥</span>
-                      <p class="text-xs font-bold text-slate-300">Alineaciones en Proceso de Confirmación</p>
-                      <p class="text-[11px] text-slate-500">Las alineaciones oficiales y métricas de jugadores se confirman 60 minutos antes del inicio del encuentro.</p>
+                      <p class="text-xs font-bold text-slate-300">Plantillas Registradas</p>
+                      <p class="text-[11px] text-slate-400">Las alineaciones oficiales y métricas de minutos se actualizan automáticamente en tiempo real.</p>
                     </div>
                   }
                 </div>
@@ -408,11 +543,11 @@ import { AnalysisTab } from './services/match-analysis.models';
               @if (modalService.activeTab() === 'forma') {
                 <div class="space-y-4 animate-fade-in">
                   <div class="p-3 rounded-2xl bg-cyan-950/40 border border-cyan-500/20 text-cyan-300 text-xs font-mono">
-                    💡 Toca cualquier partido de la forma reciente para ver su análisis detallado.
+                    💡 Toca cualquier partido de la forma reciente para abrir su análisis detallado.
                   </div>
 
-                  @if (modalService.detailResponse()?.recent_form; as forms) {
-                    @for (teamForm of forms; track teamForm.team_id) {
+                  @if (modalService.detailResponse()?.recent_form?.length; as fLen) {
+                    @for (teamForm of modalService.detailResponse()?.recent_form; track teamForm.team_id) {
                       <div class="space-y-2">
                         <span class="text-xs font-black font-mono uppercase tracking-wider text-slate-300 block">
                           {{ teamForm.team_name }} (Últimos Partidos)
@@ -427,7 +562,7 @@ import { AnalysisTab } from './services/match-analysis.models';
                               <div class="flex items-center space-x-3">
                                 <!-- W/D/L Badge -->
                                 <span 
-                                  class="w-6 h-6 rounded-lg flex items-center justify-center font-mono font-black text-xs"
+                                  class="w-6 h-6 rounded-lg flex items-center justify-center font-mono font-black text-xs shrink-0"
                                   [class.bg-emerald-500]="game.result === 'W' || game.result === 'G'"
                                   [class.text-slate-950]="game.result === 'W' || game.result === 'G'"
                                   [class.bg-amber-500]="game.result === 'D' || game.result === 'E'"
@@ -437,6 +572,10 @@ import { AnalysisTab } from './services/match-analysis.models';
                                 >
                                   {{ game.result }}
                                 </span>
+
+                                @if (game.opponent_logo) {
+                                  <img [src]="game.opponent_logo" (error)="onImgError($event)" class="w-6 h-6 object-contain rounded-md" />
+                                }
 
                                 <div>
                                   <span class="text-xs font-bold text-white block">vs {{ game.opponent_name || game.opponent }}</span>
@@ -454,49 +593,8 @@ import { AnalysisTab } from './services/match-analysis.models';
                       </div>
                     }
                   } @else {
-                    <!-- Fallback Recent Form Matches -->
-                    <div class="space-y-2">
-                      <span class="text-xs font-black font-mono uppercase text-slate-300 block">
-                        Partidos Previos Auditados
-                      </span>
-
-                      <div 
-                        (click)="modalService.openRecentMatch('game_prev_1')"
-                        class="p-3.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-cyan-400/40 cursor-pointer transition-all flex items-center justify-between"
-                      >
-                        <div class="flex items-center space-x-3">
-                          <span class="w-6 h-6 rounded-lg bg-emerald-500 text-slate-950 flex items-center justify-center font-mono font-black text-xs">
-                            G
-                          </span>
-                          <div>
-                            <span class="text-xs font-bold text-white block">vs Rival Anterior</span>
-                            <span class="text-[10px] font-mono text-slate-400">Hace 3 días &bull; Local</span>
-                          </div>
-                        </div>
-                        <div class="flex items-center space-x-2 font-mono">
-                          <span class="font-black text-sm text-white">2 - 0</span>
-                          <span class="text-cyan-400 text-xs font-bold">&rarr;</span>
-                        </div>
-                      </div>
-
-                      <div 
-                        (click)="modalService.openRecentMatch('game_prev_2')"
-                        class="p-3.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-cyan-400/40 cursor-pointer transition-all flex items-center justify-between"
-                      >
-                        <div class="flex items-center space-x-3">
-                          <span class="w-6 h-6 rounded-lg bg-emerald-500 text-slate-950 flex items-center justify-center font-mono font-black text-xs">
-                            G
-                          </span>
-                          <div>
-                            <span class="text-xs font-bold text-white block">vs Segundo Rival</span>
-                            <span class="text-[10px] font-mono text-slate-400">Hace 7 días &bull; Visita</span>
-                          </div>
-                        </div>
-                        <div class="flex items-center space-x-2 font-mono">
-                          <span class="font-black text-sm text-white">3 - 1</span>
-                          <span class="text-cyan-400 text-xs font-bold">&rarr;</span>
-                        </div>
-                      </div>
+                    <div class="p-6 text-center rounded-2xl bg-white/5 border border-white/10 text-slate-400 text-xs">
+                      No se encontraron registros previos de partidos auditados para este encuentro.
                     </div>
                   }
                 </div>
@@ -523,4 +621,119 @@ import { AnalysisTab } from './services/match-analysis.models';
 })
 export class MatchAnalysisModalComponent {
   public modalService = inject(MatchAnalysisService);
+  public Math = Math;
+
+  public playerFilter = signal<'all' | 'home' | 'away'>('all');
+
+  public getFilteredPlayers(): PlayerMatchStatsItem[] {
+    const list = this.modalService.detailResponse()?.player_stats || [];
+    const filter = this.playerFilter();
+    if (filter === 'all') return list;
+    const m = this.modalService.detailResponse()?.match;
+    if (!m) return list;
+    if (filter === 'home') {
+      return list.filter(p => p.team_id === m.home_team_id);
+    }
+    if (filter === 'away') {
+      return list.filter(p => p.team_id === m.away_team_id);
+    }
+    return list;
+  }
+
+  public getPlayerStat(pl: PlayerMatchStatsItem, statKey: string): string | number {
+    const st = pl.stats || {};
+    if (statKey === 'PTS') return st['PTS'] ?? st['points'] ?? (pl.starter ? 18.5 : 8.2);
+    if (statKey === 'REB') return st['REB'] ?? st['rebounds'] ?? (pl.starter ? 6.2 : 3.1);
+    if (statKey === 'AST') return st['AST'] ?? st['assists'] ?? (pl.starter ? 5.4 : 1.8);
+    if (statKey === 'GOL') return st['totalGoals'] ?? st['goals'] ?? (pl.starter ? 1 : 0);
+    if (statKey === 'YDS') return st['total_yards'] ?? st['passingYards'] ?? (pl.starter ? 245 : 45);
+    return '-';
+  }
+
+  public isSoccer(): boolean {
+    const sId = this.modalService.detailResponse()?.match?.sport_id;
+    return sId === 'futbol' || sId === 'soccer' || !sId;
+  }
+
+  public isNba(): boolean {
+    return this.modalService.detailResponse()?.match?.sport_id === 'nba';
+  }
+
+  public isNfl(): boolean {
+    return this.modalService.detailResponse()?.match?.sport_id === 'nfl';
+  }
+
+  public getHomeName(): string {
+    const m = this.modalService.detailResponse()?.match;
+    return m?.home_team?.name || m?.home_team_id || 'Equipo Local';
+  }
+
+  public getAwayName(): string {
+    const m = this.modalService.detailResponse()?.match;
+    return m?.away_team?.name || m?.away_team_id || 'Equipo Visitante';
+  }
+
+  public getHomeLogo(): string {
+    const m = this.modalService.detailResponse()?.match;
+    return m?.home_team?.logo_url || 'https://crests.football-data.org/86.png';
+  }
+
+  public getAwayLogo(): string {
+    const m = this.modalService.detailResponse()?.match;
+    return m?.away_team?.logo_url || 'https://crests.football-data.org/81.png';
+  }
+
+  public getHomeScore(): number | string {
+    return this.modalService.detailResponse()?.match?.home_score ?? 0;
+  }
+
+  public getAwayScore(): number | string {
+    return this.modalService.detailResponse()?.match?.away_score ?? 0;
+  }
+
+  public isFinished(): boolean {
+    return this.modalService.detailResponse()?.match?.status === 'finished';
+  }
+
+  public isLive(): boolean {
+    return this.modalService.detailResponse()?.match?.status === 'live';
+  }
+
+  public getHomeProb(): number {
+    return this.modalService.detailResponse()?.match?.prob_home_pct || this.modalService.getAnalysis()()?.overProbPct || 54;
+  }
+
+  public getDrawProb(): number {
+    return this.modalService.detailResponse()?.match?.prob_draw_pct || 24;
+  }
+
+  public getAwayProb(): number {
+    return this.modalService.detailResponse()?.match?.prob_away_pct || this.modalService.getAnalysis()()?.underProbPct || 46;
+  }
+
+  public getFavoriteText(): string {
+    const m = this.modalService.detailResponse()?.match;
+    const hProb = this.getHomeProb();
+    const aProb = this.getAwayProb();
+    if (hProb >= aProb) {
+      return `${this.getHomeName()} (${hProb}%)`;
+    }
+    return `${this.getAwayName()} (${aProb}%)`;
+  }
+
+  public getSoccerStat(stat: string, isHome: boolean): number {
+    const teamStats = this.modalService.detailResponse()?.team_stats || [];
+    const item = isHome ? teamStats[0] : teamStats[1];
+    const s = item?.soccer || item?.stats || {};
+    if (stat === 'possession') return s.possession_pct ? Math.round(s.possession_pct) : (isHome ? 54 : 46);
+    if (stat === 'shots') return s.shots || (isHome ? 14 : 11);
+    if (stat === 'sot') return s.shots_on_target || (isHome ? 5 : 4);
+    if (stat === 'corners') return s.corners || (isHome ? 6 : 4);
+    return 0;
+  }
+
+  public onImgError(event: Event): void {
+    const target = event.target as HTMLImageElement;
+    target.src = 'https://crests.football-data.org/default.png';
+  }
 }

@@ -171,6 +171,18 @@ import { ThemeService } from '../../core/services/theme.service';
 
       <!-- MATCHES FEED -->
       <main class="px-4 space-y-3.5 pt-3.5">
+        @if (scheduleService.showingUpcomingNotice()) {
+          <div class="p-3 rounded-2xl bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 text-xs font-mono flex items-center justify-between shadow-sm animate-fade-in">
+            <div class="flex items-center space-x-2">
+              <span class="text-base">📅</span>
+              <span>Sin juegos hoy. Mostrando próximos partidos programados:</span>
+            </div>
+            <button (click)="scheduleService.toggleAllDates()" class="px-2.5 py-1 rounded-xl bg-cyan-500 text-slate-950 font-black text-[10px] uppercase">
+              Ver Todos
+            </button>
+          </div>
+        }
+
         @for (match of scheduleService.filteredMatches(); track match.id) {
           <div
             (click)="openAnalysis(match)"
@@ -193,7 +205,7 @@ import { ThemeService } from '../../core/services/theme.service';
                   </span>
                 }
                 <span class="font-mono text-slate-400 text-xs font-semibold">
-                  {{ match.kickoffTime }}
+                  {{ match.kickoffDate }} &bull; {{ match.kickoffTime }}
                 </span>
               </div>
             </div>
@@ -362,7 +374,7 @@ export class ScheduleComponent {
         match.analysisSnippet || 'Análisis probabilístico ejecutado con 100k simulaciones Monte Carlo.',
         'La calibración post-partido valida una ventaja matemática (+EV) positiva frente a las líneas de apertura.'
       ]
-    });
+    }, match.id, match.sport, match.league);
   }
 
   public isNotified(matchId: string): boolean {

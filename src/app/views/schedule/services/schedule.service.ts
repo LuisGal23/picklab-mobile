@@ -1,4 +1,4 @@
-import { Injectable, signal, computed, inject, effect } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
 import { DayMatchItem, SportFilterType } from './schedule.models';
 import { ApiService, Match } from '../../../core/services/api.service';
 
@@ -7,7 +7,7 @@ import { ApiService, Match } from '../../../core/services/api.service';
 })
 export class ScheduleService {
   private api = inject(ApiService);
-  private readonly todayStr = new Date().toISOString().slice(0, 10);
+  private readonly todayStr = this.getTodayLocalDateString();
 
   public selectedSport = signal<SportFilterType>('all');
   public searchQuery = signal<string>('');
@@ -15,283 +15,55 @@ export class ScheduleService {
   public allDatesMode = signal<boolean>(false);
   public isLoading = signal<boolean>(false);
 
+  // Pool of all live matches loaded from Supabase across sports
   private liveMatches = signal<DayMatchItem[]>([]);
 
-  private readonly fallbackCatalog: DayMatchItem[] = [
-    // FUTBOL
-    {
-      id: 'fut_1',
-      sport: 'futbol',
-      league: 'Premier League',
-      homeTeam: 'Arsenal FC',
-      awayTeam: 'Chelsea FC',
-      homeLogo: 'https://crests.football-data.org/57.png',
-      awayLogo: 'https://crests.football-data.org/61.png',
-      kickoffDate: this.todayStr,
-      kickoffTime: '20:00',
-      status: 'PRE_MATCH',
-      probHome: 52.4,
-      probDraw: 26.1,
-      probAway: 21.5,
-      homeOdds: 1.85,
-      drawOdds: 3.60,
-      awayOdds: 4.20,
-      isOfficialPick: true,
-      isProbableByStats: false,
-      pickTitle: 'Over 2.5 Goles',
-      pickSelection: 'Over 2.5 Goles @ 1.88',
-      pickOdds: 1.88,
-      edgePct: 18.4,
-      mu: 3.12,
-      sigma: 1.15,
-      simulations: 100000,
-      analysisSnippet: 'Simulación Monte Carlo proyecta 3.12 xG combinados. Ventaja de +18.4% sobre cuota de mercado en Pinnacle/DraftKings.'
-    },
-    {
-      id: 'fut_2',
-      sport: 'futbol',
-      league: 'La Liga EA Sports',
-      homeTeam: 'Real Madrid',
-      awayTeam: 'FC Barcelona',
-      homeLogo: 'https://crests.football-data.org/86.png',
-      awayLogo: 'https://crests.football-data.org/81.png',
-      kickoffDate: this.todayStr,
-      kickoffTime: '21:00',
-      status: 'PRE_MATCH',
-      probHome: 46.8,
-      probDraw: 24.3,
-      probAway: 28.9,
-      homeOdds: 2.10,
-      drawOdds: 3.50,
-      awayOdds: 3.25,
-      isOfficialPick: true,
-      isProbableByStats: false,
-      pickTitle: 'Ambos Equipos Anotan',
-      pickSelection: 'BTTS: Sí @ 1.75',
-      pickOdds: 1.75,
-      edgePct: 14.2,
-      mu: 2.85,
-      sigma: 0.95,
-      simulations: 100000,
-      analysisSnippet: 'Más de 4.1 xG combinados en los últimos 5 clásicos. Ambos con potencial ofensivo estelar.'
-    },
-    {
-      id: 'fut_3',
-      sport: 'futbol',
-      league: 'UEFA Champions League',
-      homeTeam: 'Manchester City',
-      awayTeam: 'Bayern Múnich',
-      homeLogo: 'https://crests.football-data.org/65.png',
-      awayLogo: 'https://crests.football-data.org/5.png',
-      kickoffDate: this.todayStr,
-      kickoffTime: '19:45',
-      status: 'PRE_MATCH',
-      probHome: 55.1,
-      probDraw: 24.0,
-      probAway: 20.9,
-      homeOdds: 1.78,
-      drawOdds: 3.80,
-      awayOdds: 4.40,
-      isOfficialPick: false,
-      isProbableByStats: true,
-      pickTitle: 'Man City Gana y +1.5 Goles',
-      pickSelection: 'Man City & Over 1.5 @ 1.95',
-      pickOdds: 1.95,
-      edgePct: 8.7,
-      mu: 3.40,
-      sigma: 1.20,
-      simulations: 100000,
-      analysisSnippet: 'Probable por métricas: Man City invicto como local en 14 partidos europeos con 2.6 goles por partido.'
-    },
-    {
-      id: 'fut_4',
-      sport: 'futbol',
-      league: 'Serie A',
-      homeTeam: 'Inter de Milán',
-      awayTeam: 'Juventus FC',
-      homeLogo: 'https://crests.football-data.org/108.png',
-      awayLogo: 'https://crests.football-data.org/109.png',
-      kickoffDate: this.todayStr,
-      kickoffTime: '18:45',
-      status: 'PRE_MATCH',
-      probHome: 48.0,
-      probDraw: 29.5,
-      probAway: 22.5,
-      homeOdds: 1.95,
-      drawOdds: 3.20,
-      awayOdds: 3.90,
-      isOfficialPick: false,
-      isProbableByStats: true,
-      pickTitle: 'Under 2.5 Goles',
-      pickSelection: 'Under 2.5 @ 1.82',
-      pickOdds: 1.82,
-      edgePct: 7.9,
-      mu: 2.10,
-      sigma: 0.88,
-      simulations: 100000,
-      analysisSnippet: 'Duelo táctico defensivo con xGA inferior a 0.85 goles concedidos por cada 90 minutos.'
-    },
-
-    // NBA
-    {
-      id: 'nba_1',
-      sport: 'nba',
-      league: 'NBA Regular Season',
-      homeTeam: 'LA Lakers',
-      awayTeam: 'Golden State Warriors',
-      homeLogo: 'https://a.espncdn.com/i/teamlogos/nba/500/lal.png',
-      awayLogo: 'https://a.espncdn.com/i/teamlogos/nba/500/gsw.png',
-      kickoffDate: this.todayStr,
-      kickoffTime: '22:30',
-      status: 'PRE_MATCH',
-      probHome: 58.6,
-      probAway: 41.4,
-      homeOdds: 1.70,
-      awayOdds: 2.20,
-      isOfficialPick: true,
-      isProbableByStats: false,
-      pickTitle: 'LA Lakers -3.5 Spread',
-      pickSelection: 'Lakers -3.5 @ 1.91',
-      pickOdds: 1.91,
-      edgePct: 15.6,
-      mu: 228.5,
-      sigma: 12.4,
-      simulations: 100000,
-      analysisSnippet: 'Eficiencia neta de Lakers +8.2 en casa vs defensas de perímetro. Spread favorable con ventaja matemática.'
-    },
-    {
-      id: 'nba_2',
-      sport: 'nba',
-      league: 'NBA Regular Season',
-      homeTeam: 'Boston Celtics',
-      awayTeam: 'Milwaukee Bucks',
-      homeLogo: 'https://a.espncdn.com/i/teamlogos/nba/500/bos.png',
-      awayLogo: 'https://a.espncdn.com/i/teamlogos/nba/500/mil.png',
-      kickoffDate: this.todayStr,
-      kickoffTime: '19:00',
-      status: 'PRE_MATCH',
-      probHome: 64.2,
-      probAway: 35.8,
-      homeOdds: 1.55,
-      awayOdds: 2.50,
-      isOfficialPick: false,
-      isProbableByStats: true,
-      pickTitle: 'Over 224.5 Puntos Totales',
-      pickSelection: 'Over 224.5 @ 1.87',
-      pickOdds: 1.87,
-      edgePct: 9.3,
-      mu: 231.2,
-      sigma: 11.8,
-      simulations: 100000,
-      analysisSnippet: 'Ritmo proyectado de 102.4 posesiones. Ambos equipos en el top 5 de volumen de triples intentados.'
-    },
-    {
-      id: 'nba_3',
-      sport: 'nba',
-      league: 'NBA Regular Season',
-      homeTeam: 'Dallas Mavericks',
-      awayTeam: 'Denver Nuggets',
-      homeLogo: 'https://a.espncdn.com/i/teamlogos/nba/500/dal.png',
-      awayLogo: 'https://a.espncdn.com/i/teamlogos/nba/500/den.png',
-      kickoffDate: this.todayStr,
-      kickoffTime: '20:30',
-      status: 'PRE_MATCH',
-      probHome: 51.5,
-      probAway: 48.5,
-      homeOdds: 1.92,
-      awayOdds: 1.92,
-      isOfficialPick: true,
-      isProbableByStats: false,
-      pickTitle: 'Nuggets Moneyline',
-      pickSelection: 'Denver ML @ 1.92',
-      pickOdds: 1.92,
-      edgePct: 11.2,
-      mu: 221.0,
-      sigma: 10.9,
-      simulations: 100000,
-      analysisSnippet: 'Calibración Monte Carlo favorece rebote ofensivo y porcentaje de tiro efectivo de Denver en la pintura.'
-    },
-
-    // NFL
-    {
-      id: 'nfl_1',
-      sport: 'nfl',
-      league: 'NFL Regular Season',
-      homeTeam: 'Kansas City Chiefs',
-      awayTeam: 'San Francisco 49ers',
-      homeLogo: 'https://a.espncdn.com/i/teamlogos/nfl/500/kc.png',
-      awayLogo: 'https://a.espncdn.com/i/teamlogos/nfl/500/sf.png',
-      kickoffDate: this.todayStr,
-      kickoffTime: '21:15',
-      status: 'PRE_MATCH',
-      probHome: 56.4,
-      probAway: 43.6,
-      homeOdds: 1.76,
-      awayOdds: 2.15,
-      isOfficialPick: true,
-      isProbableByStats: false,
-      pickTitle: 'Chiefs Moneyline',
-      pickSelection: 'Kansas City Chiefs ML @ 1.76',
-      pickOdds: 1.76,
-      edgePct: 14.1,
-      mu: 48.5,
-      sigma: 8.2,
-      simulations: 100000,
-      analysisSnippet: 'EPA por pase de Mahomes supera en +0.18 al promedio. Modelo halla clara ineficiencia en cuotas de visita.'
-    },
-    {
-      id: 'nfl_2',
-      sport: 'nfl',
-      league: 'NFL Regular Season',
-      homeTeam: 'Philadelphia Eagles',
-      awayTeam: 'Dallas Cowboys',
-      homeLogo: 'https://a.espncdn.com/i/teamlogos/nfl/500/phi.png',
-      awayLogo: 'https://a.espncdn.com/i/teamlogos/nfl/500/dal.png',
-      kickoffDate: this.todayStr,
-      kickoffTime: '17:25',
-      status: 'PRE_MATCH',
-      probHome: 61.2,
-      probAway: 38.8,
-      homeOdds: 1.62,
-      awayOdds: 2.35,
-      isOfficialPick: false,
-      isProbableByStats: true,
-      pickTitle: 'Eagles -3.0 Spread',
-      pickSelection: 'Eagles -3.0 @ 1.85',
-      pickOdds: 1.85,
-      edgePct: 8.4,
-      mu: 47.0,
-      sigma: 7.9,
-      simulations: 100000,
-      analysisSnippet: 'Dominio de línea ofensiva en yardas terrestres tras el primer contacto (+114 yardas promedio).'
-    }
-  ];
-
   constructor() {
-    this.fetchMatches();
-
-    effect(() => {
-      // Re-fetch when sport or date changes
-      const s = this.selectedSport();
-      const d = this.selectedDate();
-      const allD = this.allDatesMode();
-      this.fetchMatches(s, allD ? undefined : d);
-    });
+    this.fetchAllUpcomingMatches();
   }
 
-  public fetchMatches(sport?: SportFilterType, dateStr?: string): void {
-    this.isLoading.set(true);
-    const sp = (!sport || sport === 'all') ? 'all' : sport;
+  private getTodayLocalDateString(): string {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
 
-    this.api.getMatches(sp, undefined, dateStr).subscribe({
+  public fetchAllUpcomingMatches(): void {
+    this.isLoading.set(true);
+    // Fetch broad pool of all upcoming matches (next 21+ days across soccer, NBA, NFL)
+    this.api.getMatches('all', undefined, undefined).subscribe({
       next: (matches) => {
         this.isLoading.set(false);
         if (matches && matches.length > 0) {
           const mapped = matches.map(m => this.mapMatchToDayItem(m));
           this.liveMatches.set(mapped);
-        } else {
-          // If query returned no matches for today, keep live empty so fallback/all dates can be viewed
-          this.liveMatches.set([]);
+        }
+      },
+      error: (err) => {
+        console.warn('Could not fetch matches from Supabase:', err);
+        this.isLoading.set(false);
+      }
+    });
+  }
+
+  public fetchMatchesByDate(dateStr: string): void {
+    this.isLoading.set(true);
+    const sp = this.selectedSport();
+    this.api.getMatches(sp === 'all' ? undefined : sp, undefined, dateStr).subscribe({
+      next: (matches) => {
+        this.isLoading.set(false);
+        if (matches && matches.length > 0) {
+          const mapped = matches.map(m => this.mapMatchToDayItem(m));
+          // Merge with existing pool without duplicates
+          const cur = [...this.liveMatches()];
+          for (const item of mapped) {
+            const idx = cur.findIndex(c => c.id === item.id);
+            if (idx >= 0) cur[idx] = item;
+            else cur.push(item);
+          }
+          this.liveMatches.set(cur);
         }
       },
       error: () => {
@@ -314,7 +86,10 @@ export class ScheduleService {
     if (m.kickoff_utc) {
       try {
         const d = new Date(m.kickoff_utc);
-        kDate = d.toISOString().slice(0, 10);
+        const y = d.getFullYear();
+        const mon = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        kDate = `${y}-${mon}-${day}`;
         kTime = d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
       } catch {}
     }
@@ -323,14 +98,16 @@ export class ScheduleService {
     const aOdds = m.odds_summary?.away || 2.10;
     const dOdds = (m.sport_id === 'futbol' || m.sport_id === 'soccer') ? 3.40 : undefined;
 
+    const sId = m.sport_id === 'soccer' ? 'futbol' : (m.sport_id || 'futbol');
+
     return {
       id: m.id,
-      sport: (m.sport_id === 'soccer' ? 'futbol' : (m.sport_id || 'futbol')) as any,
-      league: m.league_id || 'Liga Oficial',
+      sport: sId as any,
+      league: m.league_id || (sId === 'nba' ? 'NBA Regular Season' : sId === 'nfl' ? 'NFL Regular Season' : 'Competición Oficial'),
       homeTeam: m.home_team?.name || 'Local',
       awayTeam: m.away_team?.name || 'Visita',
-      homeLogo: m.home_team?.logo_url || 'https://crests.football-data.org/default.png',
-      awayLogo: m.away_team?.logo_url || 'https://crests.football-data.org/default.png',
+      homeLogo: m.home_team?.logo_url || (sId === 'nba' ? 'https://a.espncdn.com/i/teamlogos/nba/500/lal.png' : sId === 'nfl' ? 'https://a.espncdn.com/i/teamlogos/nfl/500/kc.png' : 'https://crests.football-data.org/86.png'),
+      awayLogo: m.away_team?.logo_url || (sId === 'nba' ? 'https://a.espncdn.com/i/teamlogos/nba/500/gsw.png' : sId === 'nfl' ? 'https://a.espncdn.com/i/teamlogos/nfl/500/sf.png' : 'https://crests.football-data.org/81.png'),
       kickoffDate: kDate,
       kickoffTime: kTime,
       status: m.status === 'live' ? 'LIVE' : (m.status === 'finished' ? 'FINISHED' : 'PRE_MATCH'),
@@ -349,15 +126,16 @@ export class ScheduleService {
       pickSelection: chosenPick?.selection || `${m.home_team?.name} ML`,
       pickOdds: chosenPick?.odds_used ? Number(chosenPick.odds_used) : Number(hOdds),
       edgePct: chosenPick?.edge ? Math.round(chosenPick.edge * 1000) / 10 : (isOfficial ? 14.5 : 8.2),
-      mu: 2.85,
-      sigma: 1.15,
+      mu: Number(chosenPick?.simulation_params?.['mu'] || 2.85),
+      sigma: Number(chosenPick?.simulation_params?.['sigma'] || 1.15),
       simulations: 100000,
       analysisSnippet: chosenPick?.explanation_short || `Ventaja matemática confirmada por simulación Monte Carlo de 100,000 iteraciones.`
     };
   }
 
+  // Summary counts by sport from the loaded pool
   public sportsSummary = computed(() => {
-    const list = this.effectiveList();
+    const list = this.liveMatches();
     return {
       all: list.length,
       futbol: list.filter(m => m.sport === 'futbol').length,
@@ -366,32 +144,48 @@ export class ScheduleService {
     };
   });
 
-  private effectiveList = computed(() => {
-    const live = this.liveMatches();
-    if (live.length > 0) return live;
-    return this.fallbackCatalog;
+  // Determines whether the current view is auto-showing upcoming matches because no matches exist for selected date
+  public showingUpcomingNotice = computed<boolean>(() => {
+    if (this.allDatesMode()) return false;
+    const sport = this.selectedSport();
+    const date = this.selectedDate();
+    let list = this.liveMatches();
+    if (sport !== 'all') {
+      list = list.filter(m => m.sport === sport);
+    }
+    const forDate = list.filter(m => m.kickoffDate === date);
+    return forDate.length === 0 && list.length > 0;
   });
 
   public filteredMatches = computed(() => {
-    let list = this.effectiveList();
+    let list = this.liveMatches();
     const sport = this.selectedSport();
     const query = this.searchQuery().trim().toLowerCase();
     const date = this.selectedDate();
     const allDates = this.allDatesMode();
 
+    // 1. Filter by Sport
     if (sport !== 'all') {
       list = list.filter(m => m.sport === sport);
     }
 
+    // 2. Filter by Date: if specific date has matches, show them.
+    // If not in allDatesMode but that date has 0 matches for this sport, show all upcoming matches so user is never stranded!
     if (!allDates && date) {
-      list = list.filter(m => m.kickoffDate === date);
+      const dateFiltered = list.filter(m => m.kickoffDate === date);
+      if (dateFiltered.length > 0) {
+        list = dateFiltered;
+      }
+      // If 0 matches on that exact date, keep list intact so upcoming games appear
     }
 
+    // 3. Search query filter
     if (query) {
       list = list.filter(m =>
         m.homeTeam.toLowerCase().includes(query) ||
         m.awayTeam.toLowerCase().includes(query) ||
-        m.league.toLowerCase().includes(query)
+        m.league.toLowerCase().includes(query) ||
+        (m.pickTitle || '').toLowerCase().includes(query)
       );
     }
 
@@ -405,6 +199,7 @@ export class ScheduleService {
   public setToday(): void {
     this.allDatesMode.set(false);
     this.selectedDate.set(this.todayStr);
+    this.fetchMatchesByDate(this.todayStr);
   }
 
   public toggleAllDates(): void {
@@ -413,15 +208,21 @@ export class ScheduleService {
 
   public changeDate(daysOffset: number): void {
     this.allDatesMode.set(false);
-    const cur = new Date(this.selectedDate() + 'T00:00:00');
+    const cur = new Date(this.selectedDate() + 'T12:00:00');
     cur.setDate(cur.getDate() + daysOffset);
-    this.selectedDate.set(cur.toISOString().slice(0, 10));
+    const y = cur.getFullYear();
+    const m = String(cur.getMonth() + 1).padStart(2, '0');
+    const d = String(cur.getDate()).padStart(2, '0');
+    const newDateStr = `${y}-${m}-${d}`;
+    this.selectedDate.set(newDateStr);
+    this.fetchMatchesByDate(newDateStr);
   }
 
   public onDatePicked(dateVal: string): void {
     if (dateVal) {
       this.allDatesMode.set(false);
       this.selectedDate.set(dateVal);
+      this.fetchMatchesByDate(dateVal);
     }
   }
 

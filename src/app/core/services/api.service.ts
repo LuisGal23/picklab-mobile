@@ -691,9 +691,9 @@ export class ApiService {
           const [y, m, d] = dateStr.split('-').map(Number);
           const nextD = new Date(Date.UTC(y, m - 1, d + 1));
           const nextStr = nextD.toISOString().split('T')[0];
-          query = query.gte('kickoff_utc', `${dateStr}T05:00:00Z`).lte('kickoff_utc', `${nextStr}T05:00:00Z`);
+          query = query.gte('kickoff_utc', `${dateStr}T00:00:00Z`).lte('kickoff_utc', `${nextStr}T08:00:00Z`);
         } catch {
-          query = query.gte('kickoff_utc', `${dateStr}T05:00:00Z`).lte('kickoff_utc', `${dateStr}T23:59:59Z`);
+          query = query.gte('kickoff_utc', `${dateStr}T00:00:00Z`).lte('kickoff_utc', `${dateStr}T23:59:59Z`);
         }
       } else {
         // Prevent Postgres statement timeout scanning 17k historical matches

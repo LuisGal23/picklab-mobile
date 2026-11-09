@@ -254,7 +254,7 @@ export class PicksComponent {
         pick.analysisSnippet,
         `Ventaja matemática (+EV) calculada en +${pick.edgePct}% contra la línea de cierre.`
       ]
-    });
+    }, pick.id, pick.sport, pick.league);
   }
 
   public isNotified(pickId: string): boolean {
