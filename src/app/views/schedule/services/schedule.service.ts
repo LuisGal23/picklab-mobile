@@ -2,6 +2,8 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { DayMatchItem, SportFilterType } from './schedule.models';
 import { ApiService, Match } from '../../../core/services/api.service';
 
+export type ScheduleSubFilter = 'all' | 'picks' | 'live' | 'finished';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -13,6 +15,7 @@ export class ScheduleService {
   public searchQuery = signal<string>('');
   public selectedDate = signal<string>(this.todayStr);
   public allDatesMode = signal<boolean>(false);
+  public subFilter = signal<ScheduleSubFilter>('all');
   public isLoading = signal<boolean>(false);
 
   // Pool of all live matches loaded from Supabase across sports
@@ -30,9 +33,17 @@ export class ScheduleService {
     return `${y}-${m}-${d}`;
   }
 
+  public getTomorrowLocalDateString(): string {
+    const now = new Date();
+    now.setDate(now.getDate() + 1);
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
   public fetchAllUpcomingMatches(): void {
     this.isLoading.set(true);
-    // Fetch broad pool of all upcoming matches (next 21+ days across soccer, NBA, NFL)
     this.api.getMatches('all', undefined, undefined).subscribe({
       next: (matches) => {
         this.isLoading.set(false);
@@ -56,7 +67,6 @@ export class ScheduleService {
         this.isLoading.set(false);
         if (matches && matches.length > 0) {
           const mapped = matches.map(m => this.mapMatchToDayItem(m));
-          // Merge with existing pool without duplicates
           const cur = [...this.liveMatches()];
           for (const item of mapped) {
             const idx = cur.findIndex(c => c.id === item.id);
@@ -163,6 +173,7 @@ export class ScheduleService {
     const query = this.searchQuery().trim().toLowerCase();
     const date = this.selectedDate();
     const allDates = this.allDatesMode();
+    const sub = this.subFilter();
 
     // 1. Filter by Sport
     if (sport !== 'all') {
@@ -176,10 +187,18 @@ export class ScheduleService {
       if (dateFiltered.length > 0) {
         list = dateFiltered;
       }
-      // If 0 matches on that exact date, keep list intact so upcoming games appear
     }
 
-    // 3. Search query filter
+    // 3. Sub-filter: all | picks | live | finished
+    if (sub === 'picks') {
+      list = list.filter(m => m.isOfficialPick || m.isProbableByStats);
+    } else if (sub === 'live') {
+      list = list.filter(m => m.status === 'LIVE');
+    } else if (sub === 'finished') {
+      list = list.filter(m => m.status === 'FINISHED');
+    }
+
+    // 4. Search query filter
     if (query) {
       list = list.filter(m =>
         m.homeTeam.toLowerCase().includes(query) ||
@@ -200,6 +219,13 @@ export class ScheduleService {
     this.allDatesMode.set(false);
     this.selectedDate.set(this.todayStr);
     this.fetchMatchesByDate(this.todayStr);
+  }
+
+  public setTomorrow(): void {
+    this.allDatesMode.set(false);
+    const tom = this.getTomorrowLocalDateString();
+    this.selectedDate.set(tom);
+    this.fetchMatchesByDate(tom);
   }
 
   public toggleAllDates(): void {
@@ -228,5 +254,9 @@ export class ScheduleService {
 
   public isToday(): boolean {
     return this.selectedDate() === this.todayStr;
+  }
+
+  public isTomorrow(): boolean {
+    return this.selectedDate() === this.getTomorrowLocalDateString();
   }
 }

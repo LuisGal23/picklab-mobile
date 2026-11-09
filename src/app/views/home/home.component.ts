@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+﻿import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { HomeService } from './services/home.service';
@@ -13,10 +13,10 @@ import { FeaturedMatchPick, MainMatchCard } from './services/home.models';
   standalone: true,
   imports: [CommonModule, RouterLink, MatchAnalysisModalComponent, NotificationsModalComponent],
   template: `
-    <div class="min-h-screen bg-[#F5F6F8] dark:bg-[#070b14] text-slate-900 dark:text-white pb-28 font-sans select-none transition-colors duration-300">
+    <div class="min-h-screen bg-[#F8FAFC] dark:bg-[#060a12] text-slate-900 dark:text-white pb-28 font-sans select-none transition-colors duration-300">
       
       <!-- Top Brand Header Bar with Safe Notch Padding -->
-      <header class="sticky top-0 z-30 bg-[#F5F6F8]/90 dark:bg-[#070b14]/90 backdrop-blur-md px-5 pb-3 flex items-center justify-between safe-area-top border-b border-slate-200/50 dark:border-white/10 transition-colors">
+      <header class="sticky top-0 z-30 bg-[#F8FAFC]/95 dark:bg-[#060a12]/95 backdrop-blur-md px-5 pb-3 flex items-center justify-between safe-area-top border-b border-slate-200/80 dark:border-white/10 transition-colors">
         <div class="flex items-center space-x-2.5">
           <div class="w-8 h-8 rounded-xl bg-slate-950 dark:bg-white/10 p-1 flex items-center justify-center shadow-md">
             <img src="assets/logo.png" alt="PickLab" class="w-full h-full object-contain filter drop-shadow-[0_0_6px_rgba(34,197,94,0.6)]" />
@@ -81,7 +81,7 @@ import { FeaturedMatchPick, MainMatchCard } from './services/home.models';
         <section class="space-y-2.5">
           <div class="flex items-center justify-between">
             <span class="text-xs font-black uppercase font-mono tracking-wider text-slate-500 dark:text-slate-400">
-              Partidos Destacados del Día
+              Partidos Destacados del DÃ­a
             </span>
             <!-- Carousel Pagination Dots -->
             <div class="flex items-center space-x-1.5">
@@ -133,12 +133,12 @@ import { FeaturedMatchPick, MainMatchCard } from './services/home.models';
                 </div>
                 @if (item.isOfficial) {
                   <span class="px-3 py-1 rounded-full bg-emerald-500 text-slate-950 font-black font-mono text-[10px] tracking-wide flex items-center space-x-1 shadow-md">
-                    <span>★</span>
+                    <span>â˜…</span>
                     <span>{{ item.typeLabel }}</span>
                   </span>
                 } @else {
                   <span class="px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 font-black font-mono text-[10px] tracking-wide flex items-center space-x-1">
-                    <span>⚡</span>
+                    <span>âš¡</span>
                     <span>{{ item.typeLabel }}</span>
                   </span>
                 }
@@ -177,7 +177,7 @@ import { FeaturedMatchPick, MainMatchCard } from './services/home.models';
               <!-- Recommended Pick & Estimated Odds -->
               <div class="p-3.5 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between my-1">
                 <div>
-                  <span class="text-[10px] font-mono text-slate-400 uppercase font-bold block">Pronóstico Sugerido</span>
+                  <span class="text-[10px] font-mono text-slate-400 uppercase font-bold block">PronÃ³stico Sugerido</span>
                   <span class="text-base font-black text-white block">{{ item.pickTitle }}</span>
                 </div>
                 <div class="text-right">
@@ -188,11 +188,11 @@ import { FeaturedMatchPick, MainMatchCard } from './services/home.models';
 
               <!-- Edge & Probability Strip -->
               <div class="flex items-center justify-between text-xs py-2 font-mono">
-                <span class="text-emerald-400 font-bold">+{{ item.edgePct }}% Valor Matemático (EV)</span>
+                <span class="text-emerald-400 font-bold">+{{ item.edgePct }}% Valor MatemÃ¡tico (EV)</span>
                 <span class="text-slate-400">{{ item.probPct }}% Probabilidad</span>
               </div>
 
-              <!-- Action Buttons: Ver Análisis & Notificar Resultado -->
+              <!-- Action Buttons: Análisis & Jugadores & Notificar Resultado -->
               <div class="grid grid-cols-2 gap-2 pt-2">
                 <button
                   type="button"
@@ -204,7 +204,7 @@ import { FeaturedMatchPick, MainMatchCard } from './services/home.models';
                     <line x1="12" y1="20" x2="12" y2="4"/>
                     <line x1="6" y1="20" x2="6" y2="14"/>
                   </svg>
-                  <span>Ver Análisis</span>
+                  <span>Análisis & Jugadores</span>
                 </button>
 
                 <!-- Notify Button -->
@@ -220,7 +220,7 @@ import { FeaturedMatchPick, MainMatchCard } from './services/home.models';
                     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                     <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                   </svg>
-                  <span>{{ notifService.isSubscribed(item.id) ? 'Notificando ✓' : 'Avisar Resultado' }}</span>
+                  <span>{{ notifService.isSubscribed(item.id) ? 'Notificando âœ“' : 'Avisar Resultado' }}</span>
                 </button>
               </div>
 
@@ -228,11 +228,11 @@ import { FeaturedMatchPick, MainMatchCard } from './services/home.models';
           }
         </section>
 
-        <!-- MAIN PICKS DEL DÍA LIST -->
+        <!-- MAIN PICKS DEL DÃA LIST -->
         <section class="space-y-3 pt-1">
           <div class="flex items-center justify-between">
             <h3 class="text-base font-black text-slate-950 dark:text-white tracking-tight">
-              Main Picks del Día
+              Main Picks del DÃ­a
             </h3>
             <span class="text-xs font-mono font-bold text-slate-400">Total: {{ dashboard().mainPicks.length }}</span>
           </div>
@@ -245,7 +245,7 @@ import { FeaturedMatchPick, MainMatchCard } from './services/home.models';
                 <div class="flex items-center justify-between text-xs">
                   <div class="flex items-center space-x-1.5">
                     <span class="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 font-bold font-mono text-[10px] text-slate-600 dark:text-slate-300">
-                      {{ match.sport }} • {{ match.league }}
+                      {{ match.sport }} â€¢ {{ match.league }}
                     </span>
                   </div>
 
@@ -278,7 +278,7 @@ import { FeaturedMatchPick, MainMatchCard } from './services/home.models';
                 <!-- Selection & Odds Pill -->
                 <div class="p-3 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 flex items-center justify-between text-xs">
                   <div>
-                    <span class="text-[10px] font-mono text-slate-400 uppercase block">Selección</span>
+                    <span class="text-[10px] font-mono text-slate-400 uppercase block">SelecciÃ³n</span>
                     <span class="font-black text-slate-900 dark:text-white">{{ match.selection }}</span>
                   </div>
                   <div class="text-right">
@@ -298,14 +298,14 @@ import { FeaturedMatchPick, MainMatchCard } from './services/home.models';
                   </div>
                 </div>
 
-                <!-- Card Actions: Ver Análisis & Notificar -->
+                <!-- Card Actions: Análisis & Jugadores & Notificar -->
                 <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100 dark:border-white/5">
                   <button
                     type="button"
                     (click)="openMainAnalysis(match)"
                     class="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 active:scale-95 text-slate-900 dark:text-white font-bold text-xs flex items-center justify-center space-x-1.5 transition-all"
                   >
-                    <span>Ver Análisis</span>
+                    <span>Análisis & Jugadores</span>
                     <span>&rarr;</span>
                   </button>
 
@@ -317,7 +317,7 @@ import { FeaturedMatchPick, MainMatchCard } from './services/home.models';
                     [class.dark:text-emerald-400]="notifService.isSubscribed(match.id)"
                     class="py-2.5 px-3 rounded-xl border border-slate-200 dark:border-white/10 active:scale-95 font-semibold text-xs text-slate-700 dark:text-slate-300 flex items-center justify-center space-x-1 transition-all"
                   >
-                    <span>🔔</span>
+                    <span>ðŸ””</span>
                     <span>{{ notifService.isSubscribed(match.id) ? 'Avisando' : 'Notificar' }}</span>
                   </button>
                 </div>
@@ -372,7 +372,7 @@ export class HomeComponent {
       },
       reasoning: [
         item.analysisSnippet,
-        `Volatilidad proyectada (sigma = ${item.sigma}) se encuentra dentro del rango de alta confiabilidad estadística.`,
+        `Volatilidad proyectada (sigma = ${item.sigma}) se encuentra dentro del rango de alta confiabilidad estadÃ­stica.`,
         'Margen de cuota desfasada respecto a casas de apuestas de referencia.'
       ]
     }, item.id, item.sport, item.league);

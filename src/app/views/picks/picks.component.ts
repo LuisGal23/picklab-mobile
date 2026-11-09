@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+﻿import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PicksService } from './services/picks.service';
 import { MobilePickItem } from './services/picks.models';
@@ -12,10 +12,10 @@ import { ThemeService } from '../../core/services/theme.service';
   standalone: true,
   imports: [CommonModule, MatchAnalysisModalComponent],
   template: `
-    <div class="min-h-screen bg-[#F8FAFC] dark:bg-[#090D14] text-slate-900 dark:text-white pb-28 font-sans select-none transition-colors duration-300">
+    <div class="min-h-screen bg-[#F8FAFC] dark:bg-[#060a12] text-slate-900 dark:text-white pb-28 font-sans select-none transition-colors duration-300">
       
       <!-- Top Bar with Safe Area Top -->
-      <header class="sticky top-0 z-30 bg-[#F8FAFC]/95 dark:bg-[#090D14]/95 backdrop-blur-md px-4 pt-4 pb-3 border-b border-slate-200/80 dark:border-white/10 safe-area-top space-y-3">
+      <header class="sticky top-0 z-30 bg-[#F8FAFC]/95 dark:bg-[#060a12]/95 backdrop-blur-md px-4 pt-4 pb-3 border-b border-slate-200/80 dark:border-white/10 safe-area-top space-y-3">
         <div class="flex items-center justify-between">
           <div>
             <div class="flex items-center space-x-2">
@@ -204,7 +204,7 @@ import { ThemeService } from '../../core/services/theme.service';
                 (click)="openAnalysis(pick)"
                 class="px-3.5 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 active:scale-95 text-emerald-600 dark:text-emerald-400 font-bold text-xs transition-all flex items-center space-x-1"
               >
-                <span>Ver Análisis</span>
+                <span>Análisis & Jugadores</span>
                 <span>&rarr;</span>
               </button>
             </div>

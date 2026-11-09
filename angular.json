@@ -27,6 +27,11 @@
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/assets/placeholders",
+                "output": "placeholders"
               }
             ],
             "styles": [

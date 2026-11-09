@@ -26,6 +26,14 @@ export const routes: Routes = [
     loadComponent: () => import('./views/audit/audit.component').then(m => m.AuditComponent)
   },
   {
+    path: 'jugador/:id',
+    loadComponent: () => import('./views/player-profile/player-profile.component').then(m => m.PlayerProfileComponent)
+  },
+  {
+    path: 'player/:id',
+    redirectTo: 'jugador/:id'
+  },
+  {
     path: 'follows',
     redirectTo: 'audit'
   },
