@@ -1,3 +1,7 @@
+import { MatchDetailResponse, Match, PlayerMatchStatsItem, TeamRecentForm, H2HSummary, PickItem } from '../../../../../core/services/api.service';
+
+export type AnalysisTab = 'simulacion' | 'picks' | 'stats' | 'jugadores' | 'forma';
+
 export interface SimulationPercentiles {
   p10: number;
   p25: number;
@@ -26,4 +30,6 @@ export interface MatchAnalysisDetails {
   iterations: number;
   percentiles: SimulationPercentiles;
   reasoning: string[];
+  // Rich data
+  detailResponse?: MatchDetailResponse;
 }

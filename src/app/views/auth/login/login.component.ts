@@ -11,110 +11,118 @@ import { ThemeService } from '../../../core/services/theme.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="min-h-screen bg-[#070b14] flex flex-col justify-between font-sans select-none overflow-x-hidden animate-fade-in">
+    <div class="min-h-screen bg-[#060911] text-white flex flex-col justify-between font-sans select-none overflow-x-hidden animate-fade-in relative">
       
-      <!-- TOP HALF: Branded Dark Gradient with Notch Support & Glowing Logo -->
-      <div 
-        class="w-full pt-8 pb-10 px-6 flex flex-col justify-between relative overflow-hidden"
-        style="padding-top: max(env(safe-area-inset-top), 24px);"
-      >
-        <!-- Background Ambient Aurora Waves -->
-        <div class="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-emerald-500/20 blur-3xl pointer-events-none"></div>
-        <div class="absolute top-1/2 -right-20 w-80 h-80 rounded-full bg-cyan-500/15 blur-3xl pointer-events-none"></div>
+      <!-- Ambient Aurora Background Glows -->
+      <div class="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-emerald-500/20 blur-[100px] pointer-events-none"></div>
+      <div class="absolute top-1/3 -right-32 w-96 h-96 rounded-full bg-cyan-500/15 blur-[110px] pointer-events-none"></div>
+      <div class="absolute -bottom-32 left-1/4 w-80 h-80 rounded-full bg-teal-500/10 blur-[90px] pointer-events-none"></div>
 
-        <!-- Header Controls: Logo Monogram & Theme Toggle Button -->
-        <div class="flex items-center justify-between relative z-10 pb-4">
-          <div class="flex items-center space-x-2.5">
-            <div class="w-9 h-9 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-1.5 flex items-center justify-center shadow-lg">
-              <img src="assets/logo.png" alt="PickLab" class="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
+      <!-- TOP BRAND HEADER (Adaptive with Notch Safe Area) -->
+      <div 
+        class="w-full pt-6 pb-6 px-6 flex flex-col justify-between relative z-10"
+        style="padding-top: max(env(safe-area-inset-top), 28px);"
+      >
+        <!-- Top bar with PickLab Emblem and Theme Toggle -->
+        <div class="flex items-center justify-between pb-6">
+          <div class="flex items-center space-x-3">
+            <div class="w-11 h-11 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 p-2 flex items-center justify-center shadow-lg shadow-emerald-500/10">
+              <img src="assets/logo.png" alt="PickLab" class="w-full h-full object-contain filter drop-shadow-[0_0_12px_rgba(34,197,94,0.6)]" />
             </div>
-            <span class="font-black text-xl tracking-tighter text-white font-mono">
-              PICK<span class="text-emerald-400">LAB</span>
-            </span>
+            <div>
+              <span class="font-black text-2xl tracking-tighter text-white font-mono block leading-none">
+                PICK<span class="text-emerald-400">LAB</span>
+              </span>
+              <span class="text-[9px] font-mono tracking-widest text-emerald-400/80 uppercase">Quantitative ML</span>
+            </div>
           </div>
 
-          <!-- THEME TOGGLE BUTTON -->
+          <!-- Quick Theme Switcher Pill -->
           <button
             type="button"
             (click)="themeService.toggleTheme()"
-            class="px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-semibold text-white flex items-center space-x-1.5 backdrop-blur-md transition-all active:scale-95 shadow-sm"
-            [title]="themeService.isDark() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
+            class="px-3.5 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-300 flex items-center space-x-2 backdrop-blur-xl transition-all active:scale-95 shadow-sm"
           >
             @if (themeService.isDark()) {
-              <svg class="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
-              </svg>
-              <span>Claro</span>
-            } @else {
-              <svg class="w-4 h-4 text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
-              </svg>
+              <span class="text-amber-400 text-xs">🌙</span>
               <span>Oscuro</span>
+            } @else {
+              <span class="text-cyan-300 text-xs">☀️</span>
+              <span>Claro</span>
             }
           </button>
         </div>
 
-        <!-- Hero Brand Typography in Top Half -->
-        <div class="space-y-1.5 relative z-10 pt-2">
-          <div class="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-[10px] font-mono font-bold tracking-wider uppercase">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>Acceso Exclusivo • Motor Monte Carlo</span>
+        <!-- Hero Typography -->
+        <div class="space-y-2 pt-1 max-w-sm">
+          <div class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-[10px] font-mono font-bold tracking-wider uppercase">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+            <span>100k Simulaciones Monte Carlo</span>
           </div>
-          <h2 class="text-3xl font-black text-white tracking-tight leading-tight">
-            Pronósticos de valor con rigor matemático.
-          </h2>
-          <p class="text-xs text-slate-300 font-medium">
-            Ingresa a tu cuenta para auditar cuotas y picks en tiempo real.
+          <h1 class="text-3xl font-black text-white tracking-tight leading-tight">
+            Pronósticos +EV con rigor matemático.
+          </h1>
+          <p class="text-xs text-slate-400 font-medium leading-relaxed">
+            Accede al terminal predictivo móvil sincronizado con resultados oficiales y cuotas de mercado.
           </p>
         </div>
 
       </div>
 
-      <!-- BOTTOM HALF: Adaptive Theme Card Container (White in Light, Deep Navy in Dark) -->
+      <!-- BOTTOM CARD CONTAINER: Glassmorphism Card -->
       <div 
-        class="w-full flex-1 rounded-t-[36px] bg-[#F5F6F8] dark:bg-[#0c1322] text-slate-900 dark:text-white px-6 pt-6 pb-8 shadow-[0_-10px_40px_rgba(0,0,0,0.35)] flex flex-col justify-between transition-colors duration-300"
+        class="w-full rounded-t-[36px] bg-[#0c1322]/90 backdrop-blur-2xl border-t border-white/10 px-6 pt-6 pb-8 shadow-[0_-15px_50px_rgba(0,0,0,0.6)] flex flex-col justify-between relative z-10 transition-all duration-300"
         style="padding-bottom: max(env(safe-area-inset-bottom), 24px);"
       >
-        
         <!-- Segmented Tab Pill: [Iniciar Sesión] | [Crear Cuenta] -->
-        <div class="w-full p-1 rounded-2xl bg-slate-200 dark:bg-white/10 flex items-center mb-5">
+        <div class="w-full p-1.5 rounded-2xl bg-white/5 border border-white/10 flex items-center mb-5">
           <button
             type="button"
             (click)="activeTab = 'login'"
-            [class.bg-white]="activeTab === 'login'"
-            [class.dark:bg-[#152033]]="activeTab === 'login'"
+            [class.bg-gradient-to-r]="activeTab === 'login'"
+            [class.from-emerald-500]="activeTab === 'login'"
+            [class.to-teal-500]="activeTab === 'login'"
             [class.text-slate-950]="activeTab === 'login'"
-            [class.dark:text-white]="activeTab === 'login'"
-            [class.shadow-md]="activeTab === 'login'"
-            [class.text-slate-500]="activeTab !== 'login'"
-            [class.dark:text-slate-400]="activeTab !== 'login'"
-            class="flex-1 py-2.5 rounded-xl text-xs font-black tracking-wide transition-all text-center"
+            [class.font-black]="activeTab === 'login'"
+            [class.shadow-lg]="activeTab === 'login'"
+            [class.text-slate-400]="activeTab !== 'login'"
+            class="flex-1 py-2.5 rounded-xl text-xs tracking-wide transition-all text-center flex items-center justify-center space-x-1.5"
           >
-            Iniciar Sesión
+            <span>🔐</span>
+            <span>Iniciar Sesión</span>
           </button>
           <button
             type="button"
             (click)="activeTab = 'register'"
-            [class.bg-white]="activeTab === 'register'"
-            [class.dark:bg-[#152033]]="activeTab === 'register'"
+            [class.bg-gradient-to-r]="activeTab === 'register'"
+            [class.from-emerald-500]="activeTab === 'register'"
+            [class.to-teal-500]="activeTab === 'register'"
             [class.text-slate-950]="activeTab === 'register'"
-            [class.dark:text-white]="activeTab === 'register'"
-            [class.shadow-md]="activeTab === 'register'"
-            [class.text-slate-500]="activeTab !== 'register'"
-            [class.dark:text-slate-400]="activeTab !== 'register'"
-            class="flex-1 py-2.5 rounded-xl text-xs font-black tracking-wide transition-all text-center"
+            [class.font-black]="activeTab === 'register'"
+            [class.shadow-lg]="activeTab === 'register'"
+            [class.text-slate-400]="activeTab !== 'register'"
+            class="flex-1 py-2.5 rounded-xl text-xs tracking-wide transition-all text-center flex items-center justify-center space-x-1.5"
           >
-            Crear Cuenta
+            <span>✨</span>
+            <span>Crear Cuenta</span>
           </button>
         </div>
 
+        <!-- Error Feedback Message -->
+        @if (loginService.errorMessage()) {
+          <div class="mb-4 p-3 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center space-x-2 font-medium animate-fade-in">
+            <span>⚠️</span>
+            <span>{{ loginService.errorMessage() }}</span>
+          </div>
+        }
+
         <!-- TAB 1: FORMULARIO INICIAR SESIÓN -->
         @if (activeTab === 'login') {
-          <form (ngSubmit)="onLogin()" class="space-y-4 animate-fade-in my-auto">
+          <form (ngSubmit)="onLogin()" class="space-y-4 animate-fade-in">
             
             <!-- Email -->
             <div class="space-y-1.5">
-              <label class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-mono">
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">
                 Correo Electrónico
               </label>
               <div class="relative flex items-center">
@@ -130,7 +138,7 @@ import { ThemeService } from '../../../core/services/theme.service';
                   required
                   [(ngModel)]="loginCreds.email"
                   placeholder="ejemplo@picklab.io"
-                  class="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 shadow-sm transition-all"
+                  class="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white/5 border border-white/10 text-sm font-semibold text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 shadow-inner transition-all font-sans"
                 />
               </div>
             </div>
@@ -138,10 +146,10 @@ import { ThemeService } from '../../../core/services/theme.service';
             <!-- Password -->
             <div class="space-y-1.5">
               <div class="flex items-center justify-between">
-                <label class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-mono">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">
                   Contraseña
                 </label>
-                <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">¿Olvidaste tu contraseña?</span>
+                <span class="text-[10px] font-bold text-emerald-400 cursor-pointer hover:underline">¿Olvidaste tu contraseña?</span>
               </div>
               <div class="relative flex items-center">
                 <span class="absolute left-4 text-slate-400">
@@ -156,19 +164,19 @@ import { ThemeService } from '../../../core/services/theme.service';
                   required
                   [(ngModel)]="loginCreds.password"
                   placeholder="••••••••"
-                  class="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 shadow-sm transition-all"
+                  class="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white/5 border border-white/10 text-sm font-semibold text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 shadow-inner transition-all font-sans"
                 />
               </div>
             </div>
 
             <!-- Remember me -->
             <div class="flex items-center justify-between pt-1">
-              <label class="flex items-center space-x-2 text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer">
+              <label class="flex items-center space-x-2 text-xs font-semibold text-slate-300 cursor-pointer">
                 <input
                   type="checkbox"
                   name="rememberMe"
                   [(ngModel)]="loginCreds.rememberMe"
-                  class="rounded text-emerald-500 border-slate-300 dark:border-white/20 focus:ring-emerald-500"
+                  class="rounded text-emerald-500 bg-white/5 border-white/20 focus:ring-emerald-500"
                 />
                 <span>Recordar sesión</span>
               </label>
@@ -178,10 +186,10 @@ import { ThemeService } from '../../../core/services/theme.service';
             <button
               type="submit"
               [disabled]="loginService.isLoading()"
-              class="w-full py-4 rounded-2xl bg-slate-950 dark:bg-emerald-500 hover:bg-slate-900 dark:hover:bg-emerald-400 text-white dark:text-slate-950 font-black text-sm tracking-wide shadow-xl active:scale-[0.98] flex items-center justify-center space-x-2 transition-all disabled:opacity-50 mt-2"
+              class="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 hover:opacity-95 text-slate-950 font-black text-sm tracking-wide shadow-xl shadow-emerald-500/20 active:scale-[0.98] flex items-center justify-center space-x-2 transition-all disabled:opacity-50 mt-2"
             >
               @if (loginService.isLoading()) {
-                <span class="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+                <span class="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span>
                 <span>Iniciando sesión...</span>
               } @else {
                 <span>Ingresar a PickLab</span>
@@ -193,11 +201,11 @@ import { ThemeService } from '../../../core/services/theme.service';
 
         <!-- TAB 2: FORMULARIO CREAR CUENTA -->
         @if (activeTab === 'register') {
-          <form (ngSubmit)="onRegister()" class="space-y-3.5 animate-fade-in my-auto">
+          <form (ngSubmit)="onRegister()" class="space-y-3.5 animate-fade-in">
             
             <!-- Full Name -->
             <div class="space-y-1">
-              <label class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-mono">
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">
                 Nombre y Apellido
               </label>
               <input
@@ -206,13 +214,13 @@ import { ThemeService } from '../../../core/services/theme.service';
                 required
                 [(ngModel)]="registerData.fullName"
                 placeholder="Luis Gallardo"
-                class="w-full px-4 py-3 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 shadow-sm transition-all"
+                class="w-full px-4 py-3 rounded-2xl bg-white/5 border border-white/10 text-sm font-semibold text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 shadow-inner transition-all font-sans"
               />
             </div>
 
             <!-- Email -->
             <div class="space-y-1">
-              <label class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-mono">
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">
                 Correo Electrónico
               </label>
               <input
@@ -221,13 +229,13 @@ import { ThemeService } from '../../../core/services/theme.service';
                 required
                 [(ngModel)]="registerData.email"
                 placeholder="tu@correo.com"
-                class="w-full px-4 py-3 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 shadow-sm transition-all"
+                class="w-full px-4 py-3 rounded-2xl bg-white/5 border border-white/10 text-sm font-semibold text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 shadow-inner transition-all font-sans"
               />
             </div>
 
             <!-- Password -->
             <div class="space-y-1">
-              <label class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-mono">
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">
                 Contraseña
               </label>
               <input
@@ -236,13 +244,13 @@ import { ThemeService } from '../../../core/services/theme.service';
                 required
                 [(ngModel)]="registerData.password"
                 placeholder="Mínimo 6 caracteres"
-                class="w-full px-4 py-3 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 shadow-sm transition-all"
+                class="w-full px-4 py-3 rounded-2xl bg-white/5 border border-white/10 text-sm font-semibold text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 shadow-inner transition-all font-sans"
               />
             </div>
 
             <!-- Confirm Password -->
             <div class="space-y-1">
-              <label class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-mono">
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">
                 Confirmar Contraseña
               </label>
               <input
@@ -251,7 +259,7 @@ import { ThemeService } from '../../../core/services/theme.service';
                 required
                 [(ngModel)]="registerData.confirmPassword"
                 placeholder="Repite tu contraseña"
-                class="w-full px-4 py-3 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 shadow-sm transition-all"
+                class="w-full px-4 py-3 rounded-2xl bg-white/5 border border-white/10 text-sm font-semibold text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 shadow-inner transition-all font-sans"
               />
             </div>
 
@@ -259,7 +267,7 @@ import { ThemeService } from '../../../core/services/theme.service';
             <button
               type="submit"
               [disabled]="loginService.isLoading()"
-              class="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:opacity-95 text-slate-950 font-black text-sm tracking-wide shadow-xl active:scale-[0.98] flex items-center justify-center space-x-2 transition-all disabled:opacity-50 mt-1"
+              class="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 hover:opacity-95 text-slate-950 font-black text-sm tracking-wide shadow-xl shadow-emerald-500/20 active:scale-[0.98] flex items-center justify-center space-x-2 transition-all disabled:opacity-50 mt-1"
             >
               @if (loginService.isLoading()) {
                 <span class="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span>
@@ -273,9 +281,10 @@ import { ThemeService } from '../../../core/services/theme.service';
         }
 
         <!-- Bottom Security Disclaimer -->
-        <div class="pt-4 text-center">
-          <p class="text-[11px] text-slate-400 font-mono">
-            🔒 Inmutable SHA-256 • Auditoría Cuantitativa de Picks
+        <div class="pt-5 text-center">
+          <p class="text-[11px] text-slate-400 font-mono flex items-center justify-center space-x-1.5">
+            <span>🔒</span>
+            <span>Auditoría Inmutable SHA-256 • Sesión Protegida</span>
           </p>
         </div>
 
@@ -305,8 +314,10 @@ export class LoginComponent {
   };
 
   public async onLogin(): Promise<void> {
-    await this.loginService.login(this.loginCreds);
-    this.router.navigate(['/home']);
+    const success = await this.loginService.login(this.loginCreds);
+    if (success) {
+      this.router.navigate(['/home']);
+    }
   }
 
   public async onRegister(): Promise<void> {
@@ -314,7 +325,9 @@ export class LoginComponent {
       alert('Las contraseñas no coinciden. Por favor verifícalas.');
       return;
     }
-    await this.loginService.register(this.registerData);
-    this.router.navigate(['/home']);
+    const success = await this.loginService.register(this.registerData);
+    if (success) {
+      this.router.navigate(['/home']);
+    }
   }
 }

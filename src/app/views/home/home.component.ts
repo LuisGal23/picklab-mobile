@@ -100,15 +100,37 @@ import { FeaturedMatchPick, MainMatchCard } from './services/home.models';
             </div>
           </div>
 
-          <!-- Active Carousel Slide Card with Smooth Fade Animation -->
+          <!-- Active Carousel Slide Card with Smooth Side-to-Side Slide & Blur Animation -->
           @if (currentFeatured(); as item) {
-            <div class="rounded-3xl p-5 shadow-2xl relative overflow-hidden transition-all duration-500 animate-fade-in bg-gradient-to-br from-[#0c1524] via-[#070e1b] to-[#041a14] border border-emerald-500/30 text-white">
+            <div 
+              [class.animate-slide-right]="homeService.slideDirection() === 'right'"
+              [class.animate-slide-left]="homeService.slideDirection() === 'left'"
+              class="rounded-3xl p-5 shadow-2xl relative overflow-hidden transition-all duration-500 bg-gradient-to-br from-[#0c1524] via-[#070e1b] to-[#041a14] border border-emerald-500/30 text-white"
+            >
               
               <!-- Subtle Aurora Glow in Card -->
               <div class="absolute -right-16 -top-16 w-44 h-44 rounded-full bg-emerald-500/20 blur-3xl pointer-events-none"></div>
 
-              <!-- Top Row: Badge (Pick Oficial vs Prob por Stats) + Kickoff -->
+              <!-- Top Row: Badge (Pick Oficial vs Prob por Stats) + Kickoff & Next/Prev Controls -->
               <div class="flex items-center justify-between pb-3 border-b border-white/10 text-xs">
+                <div class="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    (click)="homeService.prevFeatured()"
+                    class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-slate-300 text-xs font-bold transition-all"
+                    title="Partido anterior"
+                  >
+                    &larr;
+                  </button>
+                  <button
+                    type="button"
+                    (click)="homeService.nextFeatured()"
+                    class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-slate-300 text-xs font-bold transition-all"
+                    title="Siguiente partido"
+                  >
+                    &rarr;
+                  </button>
+                </div>
                 @if (item.isOfficial) {
                   <span class="px-3 py-1 rounded-full bg-emerald-500 text-slate-950 font-black font-mono text-[10px] tracking-wide flex items-center space-x-1 shadow-md">
                     <span>★</span>
@@ -319,8 +341,8 @@ export class HomeComponent {
   public modalService = inject(MatchAnalysisService);
   public notifService = inject(NotificationService);
 
-  public dashboard = this.homeService.getDashboardData;
-  public currentFeatured = this.homeService.getCurrentFeaturedPick;
+  public dashboard = () => this.homeService.getDashboardData();
+  public currentFeatured = () => this.homeService.getCurrentFeaturedPick();
 
   public openAnalysis(item: FeaturedMatchPick): void {
     this.modalService.openAnalysis({
@@ -353,7 +375,7 @@ export class HomeComponent {
         `Volatilidad proyectada (sigma = ${item.sigma}) se encuentra dentro del rango de alta confiabilidad estadística.`,
         'Margen de cuota desfasada respecto a casas de apuestas de referencia.'
       ]
-    });
+    }, item.id, item.sport, item.league);
   }
 
   public openMainAnalysis(match: MainMatchCard): void {
@@ -361,14 +383,14 @@ export class HomeComponent {
       matchId: match.id,
       matchTitle: `${match.homeTeam} vs ${match.awayTeam}`,
       league: match.league,
-      kickoff: match.kickoff,
+      kickoff: match.kickoffTime,
       market: match.selection,
       targetLine: 2.5,
       marketOdds: match.odds,
       fairOdds: Number((1 / (match.probPct / 100)).toFixed(2)),
       overProbPct: match.probPct,
       underProbPct: Math.round(100 - match.probPct),
-      edgePct: match.edgePct,
+      edgePct: 14.5,
       isOfficialPick: match.type === 'OFFICIAL_EV',
       isSuspicious: false,
       muML: 2.45,
@@ -383,10 +405,9 @@ export class HomeComponent {
         p90: 4.5
       },
       reasoning: [
-        match.analysisSnippet,
         `Probabilidad de acierto del modelo cuantitativo: ${match.probPct}%.`
       ]
-    });
+    }, match.id, match.sport, match.league);
   }
 
   public toggleNotification(item: FeaturedMatchPick): void {

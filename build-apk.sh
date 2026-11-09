@@ -27,9 +27,9 @@ cat << 'EOF' > "$BUILD_DIR/AndroidManifest.xml"
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:hardwareAccelerated="true"
         android:usesCleartextTraffic="true"
@@ -83,21 +83,9 @@ cat << 'EOF' > "$BUILD_DIR/res/values-v28/styles.xml"
 </resources>
 EOF
 
-cat << 'EOF' > "$BUILD_DIR/res/drawable/ic_launcher.xml"
-<?xml version="1.0" encoding="utf-8"?>
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp"
-    android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-    <path
-        android:fillColor="#072D24"
-        android:pathData="M0,0h108v108h-108z"/>
-    <path
-        android:fillColor="#22C55E"
-        android:pathData="M30,30h20c11,0 20,9 20,20s-9,20 -20,20h-10v18h-10zM40,40v20h10c5.5,0 10,-4.5 10,-10s-4.5,-10 -10,-10z"/>
-</vector>
-EOF
+echo "=== Generando iconos oficiales de la app con el logo PickLab ==="
+python3 "$ROOT_DIR/scripts/generate_launcher_icons.py" "$ROOT_DIR/src/assets/logo.png" "$BUILD_DIR/res"
+
 
 cat << 'EOF' > "$BUILD_DIR/src/com/picklab/app/MainActivity.java"
 package com.picklab.app;

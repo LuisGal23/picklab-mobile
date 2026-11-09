@@ -7,7 +7,7 @@ export type AppTheme = 'dark' | 'light';
 })
 export class ThemeService {
   private readonly STORAGE_KEY = 'picklab_mobile_theme';
-  public theme = signal<AppTheme>('light');
+  public theme = signal<AppTheme>('dark');
   public isDark = computed(() => this.theme() === 'dark');
 
   constructor() {
@@ -26,10 +26,10 @@ export class ThemeService {
       if (saved === 'dark' || saved === 'light') {
         this.theme.set(saved);
       } else {
-        this.theme.set('light'); // Default to light mode as requested
+        this.theme.set('dark'); // Default to dark mode as requested
       }
     } catch {
-      this.theme.set('light');
+      this.theme.set('dark');
     }
   }
 

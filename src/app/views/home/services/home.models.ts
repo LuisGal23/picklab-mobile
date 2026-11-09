@@ -23,7 +23,7 @@ export interface FeaturedMatchPick {
   sigma: number;
   simulations: number;
   isOfficial: boolean;
-  type: 'OFFICIAL_EV' | 'PROB_STATS';
+  type: 'OFFICIAL_EV' | 'PROB_STATS' | 'PROBABLE_STATS';
   typeLabel: string;
   analysisSnippet: string;
 }
@@ -36,16 +36,18 @@ export interface MainMatchCard {
   awayTeam: string;
   homeLogo: string;
   awayLogo: string;
-  kickoff: string;
-  pickType: string;
+  kickoff?: string;
+  kickoffTime?: string;
+  pickType?: string;
   selection: string;
   line?: number;
   odds: number;
   probPct: number;
-  edgePct: number;
-  type: 'OFFICIAL_EV' | 'PROB_STATS';
-  status: 'PENDING' | 'LIVE' | 'FINISHED';
-  analysisSnippet: string;
+  edgePct?: number;
+  isOfficial?: boolean;
+  type: 'OFFICIAL_EV' | 'PROB_STATS' | 'PROBABLE_STATS';
+  status?: 'PENDING' | 'LIVE' | 'FINISHED';
+  analysisSnippet?: string;
 }
 
 export interface HomeDashboardData {
